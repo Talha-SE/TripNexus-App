@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for development -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    
+    <!-- Use system DNS configuration for MongoDB connections -->
+    <!-- This avoids hardcoded DNS servers like Google DNS (8.8.8.8) -->
+    <!-- Instead, it will use the DNS servers configured in Android system settings -->
+    <!-- Users can configure Cloudflare (1.1.1.1) or other DNS in their device settings -->
+</network-security-config>
