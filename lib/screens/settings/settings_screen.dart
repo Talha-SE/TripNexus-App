@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/app_config.dart';
+import '../../utils/app_theme.dart';
 import 'notification_settings_screen.dart';
 import 'privacy_security_screen.dart';
 
@@ -16,6 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _weatherNotifications = true;
   bool _tripReminders = true;
   bool _emailNotifications = true;
+  bool _isDarkMode = false;
 
   @override
   void initState() {
@@ -29,6 +31,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _weatherNotifications = prefs.getBool('weather_notifications') ?? true;
       _tripReminders = prefs.getBool('trip_reminders') ?? true;
       _emailNotifications = prefs.getBool('email_notifications') ?? true;
+      _isDarkMode = prefs.getBool('is_dark_mode') ?? false;
     });
   }
 
@@ -109,11 +112,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trailing: 'English',
             onTap: () {},
           ),
-          _buildNavigationTile(
+          _buildSwitchTile(
             icon: Icons.dark_mode_outlined,
-            title: 'Theme',
-            trailing: 'System',
-            onTap: () {},
+            title: 'Dark Theme',
+            subtitle: 'Switch between light and dark',
+            value: _isDarkMode,
+            onChanged: (value) {
+              setState(() => _isDarkMode = value);
+              ThemeController.setThemeMode(value);
+            },
           ),
           _buildNavigationTile(
             icon: Icons.storage_outlined,
@@ -220,3 +227,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
+
+

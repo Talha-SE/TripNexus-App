@@ -87,6 +87,8 @@ class OpenMeteoService {
           'wind_speed_10m_max',
           'uv_index_max',
           'weather_code',
+          'sunrise',
+          'sunset',
         ].join(','),
         'timezone': 'auto',
         'forecast_days': '7',

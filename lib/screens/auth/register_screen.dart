@@ -14,7 +14,7 @@ class RegisterScreen extends StatefulWidget {
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -39,6 +39,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'Portuguese', 'Arabic', 'Chinese', 'Japanese', 'Hindi'
   ];
 
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
+
+    _animationController.forward();
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -51,6 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _expertiseController.dispose();
     _addressController.dispose();
     _countryController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -487,146 +511,224 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Sign Up'),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Color(AppConfig.primaryColor),
+        foregroundColor: Colors.white,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Progress Indicator
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: List.generate(
-                  _selectedRole == UserRole.tourist ? 2 : 3,
-                  (index) => Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(right: index < (_selectedRole == UserRole.tourist ? 1 : 2) ? 8 : 0),
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: index <= _currentStep 
-                            ? Color(AppConfig.primaryColor)
-                            : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(2),
+      body: Stack(
+        children: [
+          // Background Gradient
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(AppConfig.primaryColor),
+                  Color(0xFF1565C0),
+                ],
+              ),
+            ),
+          ),
+          
+          // Decorative Shapes
+          Positioned(
+            top: -100,
+            left: -50,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          
+          SafeArea(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: Column(
+                children: [
+                  // Progress Indicator
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                    child: Row(
+                      children: List.generate(
+                        _selectedRole == UserRole.tourist ? 2 : 3,
+                        (index) => Expanded(
+                          child: Container(
+                            margin: EdgeInsets.only(right: index < (_selectedRole == UserRole.tourist ? 1 : 2) ? 8 : 0),
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: index <= _currentStep 
+                                  ? Colors.white 
+                                  : Colors.white.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(3),
+                              boxShadow: [
+                                if (index <= _currentStep)
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  )
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      if (_currentStep == 0) _buildRoleSelection(),
-                      if (_currentStep == 1) _buildBasicInfo(),
-                      if (_currentStep == 2 && _selectedRole != UserRole.tourist) 
-                        _buildAdvisorInfo(),
-                      const SizedBox(height: 32),
-                      Row(
-                        children: [
-                          if (_currentStep > 0)
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  setState(() => _currentStep--);
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Color(AppConfig.primaryColor),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                ),
-                                child: const Text('Back'),
-                              ),
-                            ),
-                          if (_currentStep > 0) const SizedBox(width: 16),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : () {
-                                if (_currentStep == 0) {
-                                  if (_selectedRole == null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Please select a role')),
-                                    );
-                                    return;
-                                  }
-                                  setState(() => _currentStep++);
-                                } else if (_currentStep == 1) {
-                                  if (_formKey.currentState!.validate()) {
-                                    if (_selectedRole == UserRole.tourist) {
-                                      _handleRegister();
-                                    } else {
-                                      setState(() => _currentStep++);
-                                    }
-                                  }
-                                } else {
-                                  _handleRegister();
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(AppConfig.primaryColor),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
+                  Expanded(
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                          ),
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(24),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                children: [
+                                  if (_currentStep == 0) _buildRoleSelection(),
+                                  if (_currentStep == 1) _buildBasicInfo(),
+                                  if (_currentStep == 2 && _selectedRole != UserRole.tourist) 
+                                    _buildAdvisorInfo(),
+                                  const SizedBox(height: 32),
+                                  Row(
+                                    children: [
+                                      if (_currentStep > 0)
+                                        Expanded(
+                                          child: OutlinedButton(
+                                            onPressed: () {
+                                              setState(() => _currentStep--);
+                                            },
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: Color(AppConfig.primaryColor),
+                                              side: BorderSide(color: Color(AppConfig.primaryColor)),
+                                              padding: const EdgeInsets.symmetric(vertical: 16),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                            child: const Text('Back'),
+                                          ),
+                                        ),
+                                      if (_currentStep > 0) const SizedBox(width: 16),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: _isLoading ? null : () {
+                                            if (_currentStep == 0) {
+                                              if (_selectedRole == null) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text('Please select a role')),
+                                                );
+                                                return;
+                                              }
+                                              setState(() => _currentStep++);
+                                            } else if (_currentStep == 1) {
+                                              if (_formKey.currentState!.validate()) {
+                                                if (_selectedRole == UserRole.tourist) {
+                                                  _handleRegister();
+                                                } else {
+                                                  setState(() => _currentStep++);
+                                                }
+                                              }
+                                            } else {
+                                              _handleRegister();
+                                            }
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color(AppConfig.primaryColor),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                            elevation: 5,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          child: _isLoading
+                                              ? const SizedBox(
+                                                  height: 20,
+                                                  width: 20,
+                                                  child: CircularProgressIndicator(
+                                                    color: Colors.white,
+                                                    strokeWidth: 2,
+                                                  ),
+                                                )
+                                              : Text(
+                                                  _currentStep == 0 
+                                                      ? 'Next'
+                                                      : (_currentStep == 1 && _selectedRole == UserRole.tourist)
+                                                          ? 'Sign Up'
+                                                          : (_currentStep == 2)
+                                                              ? 'Sign Up'
+                                                              : 'Next',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                        ),
                                       ),
-                                    )
-                                  : Text(
-                                      (_currentStep == 0 || (_currentStep == 1 && _selectedRole != UserRole.tourist))
-                                          ? 'Next'
-                                          : 'Sign Up',
-                                    ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Already have an account? ',
-                            style: GoogleFonts.poppins(
-                              color: Color(AppConfig.textSecondaryColor),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              'Login',
-                              style: GoogleFonts.poppins(
-                                color: Color(AppConfig.primaryColor),
-                                fontWeight: FontWeight.w600,
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Already have an account? ',
+                                        style: GoogleFonts.poppins(
+                                          color: Color(AppConfig.textSecondaryColor),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => const LoginScreen(),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          'Login',
+                                          style: GoogleFonts.poppins(
+                                            color: Color(AppConfig.primaryColor),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

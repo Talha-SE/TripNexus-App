@@ -92,239 +92,416 @@ class _TripsListScreenState extends State<TripsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('My Trips'),
+        title: Text(
+          'My Trips',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.7),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
       ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (_isFabMenuOpen) ...[
-            _buildFabOption(
-              icon: Icons.auto_awesome,
-              label: 'AI Trip Planner',
-              color: Color(AppConfig.accentColor),
-              onPressed: () async {
-                setState(() => _isFabMenuOpen = false);
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AITripPlannerScreen()),
-                );
-                if (result == true) {
-                  _loadTrips();
-                }
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80), // Move FAB above the floating nav bar
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            if (_isFabMenuOpen) ...[
+              _buildFabOption(
+                icon: Icons.auto_awesome,
+                label: 'AI Trip Planner',
+                color: Color(AppConfig.accentColor),
+                onPressed: () async {
+                  setState(() => _isFabMenuOpen = false);
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AITripPlannerScreen()),
+                  );
+                  if (result == true) {
+                    _loadTrips();
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildFabOption(
+                icon: Icons.add,
+                label: 'Manual Trip',
+                color: Color(AppConfig.primaryColor),
+                onPressed: () async {
+                  setState(() => _isFabMenuOpen = false);
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CreateTripScreen()),
+                  );
+                  if (result == true) {
+                    _loadTrips();
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+            FloatingActionButton(
+              onPressed: () {
+                setState(() => _isFabMenuOpen = !_isFabMenuOpen);
               },
+              backgroundColor: Color(AppConfig.primaryColor),
+              foregroundColor: Colors.white,
+              elevation: 4,
+              child: AnimatedRotation(
+                duration: const Duration(milliseconds: 200),
+                turns: _isFabMenuOpen ? 0.125 : 0,
+                child: Icon(_isFabMenuOpen ? Icons.close : Icons.add),
+              ),
             ),
-            const SizedBox(height: 12),
-            _buildFabOption(
-              icon: Icons.add,
-              label: 'Manual Trip',
-              color: Color(AppConfig.primaryColor),
-              onPressed: () async {
-                setState(() => _isFabMenuOpen = false);
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CreateTripScreen()),
-                );
-                if (result == true) {
-                  _loadTrips();
-                }
-              },
-            ),
-            const SizedBox(height: 16),
           ],
-          FloatingActionButton(
-            onPressed: () {
-              setState(() => _isFabMenuOpen = !_isFabMenuOpen);
-            },
-            backgroundColor: Color(AppConfig.primaryColor),
-            foregroundColor: Colors.white,
-            child: AnimatedRotation(
-              duration: const Duration(milliseconds: 200),
-              turns: _isFabMenuOpen ? 0.125 : 0,
-              child: Icon(_isFabMenuOpen ? Icons.close : Icons.add),
-            ),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.grey[50]!,
+              Colors.white,
+            ],
+          ),
+        ),
+        child: _isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(AppConfig.primaryColor)),
+                ),
+              )
+            : _trips.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Color(AppConfig.primaryColor).withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.luggage, 
+                            size: 64, 
+                            color: Color(AppConfig.primaryColor).withOpacity(0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'No trips yet',
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Color(AppConfig.textPrimaryColor),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Start planning your next adventure!',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadTrips,
+                    color: Color(AppConfig.primaryColor),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 100, 16, 100), // Top padding for AppBar
+                      itemCount: _trips.length,
+                      itemBuilder: (context, index) {
+                        final trip = _trips[index];
+                        return _buildTripCard(trip);
+                      },
+                    ),
+                  ),
+      ),
+    );
+  }
+
+  Widget _buildTripCard(TripModel trip) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _trips.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.luggage, size: 80, color: Colors.grey.shade400),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No trips yet',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          color: Colors.grey.shade600,
-                        ),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: () {
+            // Navigate to trip details
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Cover Image / Header
+              Stack(
+                children: [
+                  Container(
+                    height: 140,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(AppConfig.primaryColor),
+                          Color(AppConfig.primaryColor).withOpacity(0.7),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Start planning your next adventure!',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.grey.shade500,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.flight_takeoff,
+                        size: 48,
+                        color: Colors.white.withOpacity(0.3),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(trip.status),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            trip.status.toUpperCase(),
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 16,
+                    left: 16,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          trip.title,
+                          style: GoogleFonts.poppins(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: Colors.white.withOpacity(0.9)),
+                            const SizedBox(width: 4),
+                            Text(
+                              trip.destination,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.9),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              
+              // Details Section
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        _buildInfoItem(
+                          Icons.calendar_today,
+                          'Date',
+                          '${DateFormat('MMM dd').format(trip.startDate)} - ${DateFormat('MMM dd').format(trip.endDate)}',
+                        ),
+                        if (trip.budget != null) ...[
+                          const SizedBox(width: 24),
+                          _buildInfoItem(
+                            Icons.attach_money,
+                            'Budget',
+                            '\$${trip.budget!.toStringAsFixed(0)}',
+                          ),
+                        ],
+                      ],
+                    ),
+                    if (trip.isEcoFriendly) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.eco, size: 18, color: Colors.green),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'This is an eco-friendly trip!',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Colors.green[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadTrips,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _trips.length,
-                    itemBuilder: (context, index) {
-                      final trip = _trips[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: InkWell(
-                          onTap: () {
-                            // Navigate to trip details
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            // Edit functionality
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        trip.title,
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: _getStatusColor(trip.status).withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        trip.status.toUpperCase(),
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: _getStatusColor(trip.status),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                          icon: Icon(Icons.edit_outlined, color: Colors.grey[600], size: 20),
+                          tooltip: 'Edit Trip',
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text(
+                                  'Delete Trip',
+                                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                                 ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Icon(Icons.location_on, size: 16, color: Colors.grey.shade600),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      trip.destination,
+                                content: Text(
+                                  'Are you sure you want to delete this trip?',
+                                  style: GoogleFonts.poppins(),
+                                ),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text(
+                                      'Cancel',
+                                      style: GoogleFonts.poppins(color: Colors.grey),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      if (trip.id != null) {
+                                        _deleteTrip(trip.id!);
+                                      }
+                                    },
+                                    child: Text(
+                                      'Delete',
                                       style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade600,
+                                        color: Color(AppConfig.errorColor),
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Icon(Icons.calendar_today, size: 16, color: Colors.grey.shade600),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${DateFormat('MMM dd').format(trip.startDate)} - ${DateFormat('MMM dd, yyyy').format(trip.endDate)}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    if (trip.budget != null) ...[
-                                      Icon(Icons.attach_money, size: 16, color: Colors.grey.shade600),
-                                      Text(
-                                        trip.budget!.toStringAsFixed(0),
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                if (trip.isEcoFriendly) ...[
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Icon(Icons.eco, size: 16, color: Color(AppConfig.accentColor)),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Eco-Friendly',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12,
-                                          color: Color(AppConfig.accentColor),
-                                        ),
-                                      ),
-                                    ],
                                   ),
                                 ],
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    TextButton.icon(
-                                      onPressed: () {},
-                                      icon: const Icon(Icons.edit, size: 16),
-                                      label: const Text('Edit'),
-                                    ),
-                                    TextButton.icon(
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text('Delete Trip'),
-                                            content: const Text('Are you sure you want to delete this trip?'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(context),
-                                                child: const Text('Cancel'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                  if (trip.id != null) {
-                                                    _deleteTrip(trip.id!);
-                                                  }
-                                                },
-                                                child: Text(
-                                                  'Delete',
-                                                  style: TextStyle(color: Color(AppConfig.errorColor)),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                      icon: Icon(Icons.delete, size: 16, color: Color(AppConfig.errorColor)),
-                                      label: Text('Delete', style: TextStyle(color: Color(AppConfig.errorColor))),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.delete_outline, color: Color(AppConfig.errorColor), size: 20),
+                          tooltip: 'Delete Trip',
                         ),
-                      );
-                    },
-                  ),
+                      ],
+                    ),
+                  ],
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 14, color: Colors.grey[500]),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(AppConfig.textPrimaryColor),
+          ),
+        ),
+      ],
     );
   }
 

@@ -5,6 +5,7 @@ import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../settings/privacy_security_screen.dart';
 import '../settings/notification_settings_screen.dart';
+import '../settings/settings_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -90,25 +91,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Color(AppConfig.primaryColor);
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(bottom: 50),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(AppConfig.primaryColor),
-            Color(AppConfig.primaryColor).withOpacity(0.8),
-          ],
-        ),
+        color: isDark ? const Color(0xFF0F172A) : primaryColor,
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(AppConfig.primaryColor).withOpacity(0.3),
+            color: (isDark ? Colors.black : primaryColor).withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -124,8 +121,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.white),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
                   ),
                   Text(
                     'My Profile',
@@ -136,12 +133,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                    icon: const Icon(Icons.settings_outlined, color: Colors.white),
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const NotificationSettingsScreen(),
+                          builder: (context) => const SettingsScreen(),
                         ),
                       );
                     },
@@ -149,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             Stack(
               children: [
                 Container(
@@ -160,15 +157,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Colors.white.withOpacity(0.5),
                       width: 2,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
                   child: CircleAvatar(
-                    radius: 50,
+                    radius: 60,
                     backgroundColor: Colors.white,
                     backgroundImage: _user!.profileImage != null
                         ? NetworkImage(_user!.profileImage!)
                         : null,
                     child: _user!.profileImage == null
-                        ? Icon(Icons.person, size: 50, color: Colors.grey.shade400)
+                        ? Icon(Icons.person, size: 60, color: Colors.grey.shade400)
                         : null,
                   ),
                 ),
@@ -186,19 +190,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withOpacity(0.15),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      child: Icon(Icons.camera_alt, color: Color(AppConfig.primaryColor), size: 18),
+                      child: Icon(Icons.camera_alt, color: primaryColor, size: 20),
                     ),
                   ),
                 ),
@@ -211,6 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
+                letterSpacing: 0.5,
               ),
             ),
             const SizedBox(height: 4),
@@ -218,16 +223,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _user!.email,
               style: GoogleFonts.poppins(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withOpacity(0.8),
               ),
             ),
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -237,12 +242,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Colors.white,
                     size: 16,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Text(
-                    _user!.isVerified ? 'Verified Account' : 'Not Verified',
+                    _user!.isVerified ? 'Verified Traveler' : 'Unverified',
                     style: GoogleFonts.poppins(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -257,59 +262,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatistics() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            spreadRadius: 0,
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.08),
+            spreadRadius: 2,
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildStatItem(Icons.flight_takeoff, 'Trips', '0'),
-          Container(height: 40, width: 1, color: Colors.grey.shade100),
-          _buildStatItem(Icons.bookmark, 'Saved', '0'),
-          Container(height: 40, width: 1, color: Colors.grey.shade100),
-          _buildStatItem(Icons.person_search, 'Advisors', '0'),
+          Container(height: 40, width: 1, color: isDark ? Colors.white24 : Colors.grey.shade200),
+          _buildStatItem(Icons.bookmark_border, 'Saved', '0'),
+          Container(height: 40, width: 1, color: isDark ? Colors.white24 : Colors.grey.shade200),
+          _buildStatItem(Icons.people_outline, 'Following', '0'),
         ],
       ),
     );
   }
 
   Widget _buildStatItem(IconData icon, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Color(AppConfig.primaryColor);
+    
     return Expanded(
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Color(AppConfig.primaryColor).withOpacity(0.08),
+              color: isDark ? primaryColor.withOpacity(0.2) : primaryColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Color(AppConfig.primaryColor), size: 22),
+            child: Icon(
+              icon, 
+              color: isDark ? primaryColor.withOpacity(0.9) : primaryColor, 
+              size: 24
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(AppConfig.textPrimaryColor),
+              color: isDark ? Colors.white : Color(AppConfig.textPrimaryColor),
             ),
           ),
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Color(AppConfig.textSecondaryColor),
+              fontSize: 13,
+              color: isDark ? Colors.white60 : Color(AppConfig.textSecondaryColor),
             ),
           ),
         ],
@@ -318,23 +334,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildInfoSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Color(AppConfig.textPrimaryColor);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          padding: const EdgeInsets.only(left: 4, bottom: 16),
           child: Text(
             'Personal Information',
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(AppConfig.textPrimaryColor),
+              color: textColor,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
@@ -343,7 +362,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 offset: const Offset(0, 4),
               ),
             ],
-            border: Border.all(color: Colors.grey.shade100),
+            border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100),
           ),
           child: Column(
             children: [
@@ -365,7 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildDivider(),
               _buildInfoRow(
                 Icons.calendar_today_outlined,
-                'Member Since',
+                'Joined',
                 _formatDate(_user!.createdAt),
               ),
             ],
@@ -376,17 +395,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(12),
+              color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: Color(AppConfig.textSecondaryColor), size: 20),
+            child: Icon(icon, color: isDark ? Colors.white70 : Color(AppConfig.textSecondaryColor), size: 22),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -397,14 +418,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   label,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: Color(AppConfig.textSecondaryColor),
+                    color: isDark ? Colors.white54 : Color(AppConfig.textSecondaryColor),
                   ),
                 ),
                 Text(
                   value,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Color(AppConfig.textPrimaryColor),
+                    fontSize: 15,
+                    color: isDark ? Colors.white : Color(AppConfig.textPrimaryColor),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -417,27 +438,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildDivider() {
-    return Divider(height: 1, color: Colors.grey.shade100, indent: 64, endIndent: 20);
+    return Divider(
+      height: 1, 
+      color: Theme.of(context).brightness == Brightness.dark 
+          ? Colors.white.withOpacity(0.05) 
+          : Colors.grey.shade100, 
+      indent: 20, 
+      endIndent: 20
+    );
   }
 
   Widget _buildActionButtons() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Color(AppConfig.textPrimaryColor);
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          padding: const EdgeInsets.only(left: 4, bottom: 16),
           child: Text(
             'Settings',
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(AppConfig.textPrimaryColor),
+              color: textColor,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
@@ -446,7 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 offset: const Offset(0, 4),
               ),
             ],
-            border: Border.all(color: Colors.grey.shade100),
+            border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100),
           ),
           child: Column(
             children: [
@@ -478,7 +509,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               _buildDivider(),
               _buildActionButton(
-                icon: Icons.notifications_outlined,
+                icon: Icons.notifications_none_rounded,
                 label: 'Notification Settings',
                 onTap: () {
                   Navigator.push(
@@ -501,22 +532,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String label,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Color(AppConfig.primaryColor);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Color(AppConfig.primaryColor).withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
+                  color: isDark ? primaryColor.withOpacity(0.2) : primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: Color(AppConfig.primaryColor), size: 22),
+                child: Icon(icon, color: isDark ? primaryColor.withOpacity(0.9) : primaryColor, size: 22),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -525,11 +559,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: Color(AppConfig.textPrimaryColor),
+                    color: isDark ? Colors.white : Color(AppConfig.textPrimaryColor),
                   ),
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+              Icon(
+                Icons.chevron_right_rounded, 
+                size: 20, 
+                color: isDark ? Colors.white24 : Colors.grey.shade400
+              ),
             ],
           ),
         ),
