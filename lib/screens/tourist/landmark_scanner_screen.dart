@@ -150,311 +150,427 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          'Landmark Scanner',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          'Explore Landmarks',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
         elevation: 0,
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.7),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            if (_imageFile != null)
-              Container(
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
+      body: Stack(
+        children: [
+          // Background
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+            ),
+          ),
+          
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildImageSection(),
+                
+                Transform.translate(
+                  offset: const Offset(0, -30),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, -5),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.file(
-                    _imageFile!,
-                    width: double.infinity,
-                    height: 300,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              )
-            else
-              Container(
-                margin: const EdgeInsets.all(16),
-                width: double.infinity,
-                height: 300,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(AppConfig.primaryColor).withValues(alpha: 0.1),
-                      Color(AppConfig.accentColor).withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Color(AppConfig.primaryColor).withValues(alpha: 0.3),
-                    width: 2,
-                    style: BorderStyle.solid,
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Color(AppConfig.primaryColor).withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.camera_alt_rounded,
-                        size: 60,
-                        color: Color(AppConfig.primaryColor),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_isAnalyzing) _buildAnalyzingState(),
+                          
+                          if (_analysisResult != null) _buildResultSection(),
+                          
+                          if (!_isAnalyzing && _analysisResult == null) _buildActionButtons(),
+                          
+                          const SizedBox(height: 100), // Bottom padding
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Discover Landmarks',
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(AppConfig.textPrimaryColor),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageSection() {
+    return Container(
+      height: 400,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (_imageFile != null)
+            Image.file(
+              _imageFile!,
+              fit: BoxFit.cover,
+            )
+          else
+            Stack(
+              children: [
+                // Background Pattern
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.1,
+                    child: Image.asset(
+                      'assets/images/placeholder_pattern.png', // Fallback or assume generic
+                      errorBuilder: (c, o, s) => Container(
+                        color: Color(AppConfig.primaryColor).withOpacity(0.1),
                       ),
+                      fit: BoxFit.cover,
                     ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Text(
-                        'Take or upload a photo to identify landmarks with AI',
+                  ),
+                ),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(25),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(AppConfig.primaryColor).withOpacity(0.2),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.camera_alt_outlined,
+                          size: 50,
+                          color: Color(AppConfig.primaryColor),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Discover the World',
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(AppConfig.textPrimaryColor),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Point your camera at any landmark\nto learn its history',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           color: Color(AppConfig.textSecondaryColor),
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _isAnalyzing ? null : () => _pickImage(ImageSource.camera),
-                          icon: const Icon(Icons.camera_alt_rounded, size: 22),
-                          label: Text(
-                            'Take Photo',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(AppConfig.primaryColor),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 2,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _isAnalyzing ? null : () => _pickImage(ImageSource.gallery),
-                          icon: const Icon(Icons.photo_library_rounded, size: 22),
-                          label: Text(
-                            'Gallery',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: BorderSide(
-                              color: Color(AppConfig.primaryColor),
-                              width: 2,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
                         ),
                       ),
                     ],
                   ),
-                  if (_isAnalyzing) ...[
-                    const SizedBox(height: 32),
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Color(AppConfig.primaryColor).withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Color(AppConfig.primaryColor),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Analyzing landmark...',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(AppConfig.textPrimaryColor),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Our AI is identifying the landmark',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              color: Color(AppConfig.textSecondaryColor),
-                            ),
-                          ),
-                        ],
-                      ),
+                ),
+              ],
+            ),
+            
+          // Overlay Gradient
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 100,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.white,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Start Exploring',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(AppConfig.textPrimaryColor),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionButton(
+                icon: Icons.camera_alt_rounded,
+                label: 'Take Photo',
+                color: Color(AppConfig.primaryColor),
+                onTap: () => _pickImage(ImageSource.camera),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildActionButton(
+                icon: Icons.photo_library_rounded,
+                label: 'Gallery',
+                color: Color(AppConfig.secondaryColor),
+                onTap: () => _pickImage(ImageSource.gallery),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: color.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
-                  if (_analysisResult != null) ...[
-                    const SizedBox(height: 24),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.grey.shade200,
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_city,
-                                color: Color(AppConfig.primaryColor),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Landmark Information',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(AppConfig.primaryColor),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          FormattedText(
-                            text: _analysisResult!,
-                            fontSize: 14,
-                            textColor: Color(AppConfig.textPrimaryColor),
-                          ),
-                        ],
-                      ),
+                ),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnalyzingState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Column(
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 4,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(AppConfig.primaryColor),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _isAnalyzing || _isSaving ? null : _analyzeLandmark,
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Retry'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _isSaving
-                                ? null
-                                : _saveLandmark,
-                            icon: _isSaving
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.bookmark),
-                            label: Text(_isSaving ? 'Saving...' : 'Save'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(AppConfig.accentColor),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _isAnalyzing || _isSaving
-                                ? null
-                                : () {
-                                    setState(() {
-                                      _imageFile = null;
-                                      _analysisResult = null;
-                                    });
-                                  },
-                            icon: const Icon(Icons.camera_alt),
-                            label: const Text('New Scan'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(AppConfig.secondaryColor),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
+                  ),
+                ),
+                Icon(
+                  Icons.auto_awesome,
+                  size: 30,
+                  color: Color(AppConfig.primaryColor),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Analyzing Image...',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(AppConfig.textPrimaryColor),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Identifying landmarks and history',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Color(AppConfig.textSecondaryColor),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildResultSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Color(AppConfig.accentColor).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.check_circle_outline,
+                color: Color(AppConfig.accentColor),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Analysis Complete',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(AppConfig.textPrimaryColor),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.grey.shade100),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.05),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: FormattedText(
+            text: _analysisResult!,
+            fontSize: 15,
+            textColor: Color(AppConfig.textPrimaryColor),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _isSaving ? null : _saveLandmark,
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.bookmark_border),
+                label: Text(_isSaving ? 'Saving...' : 'Save Result'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(AppConfig.primaryColor),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  elevation: 5,
+                  shadowColor: Color(AppConfig.primaryColor).withOpacity(0.4),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _imageFile = null;
+                    _analysisResult = null;
+                  });
+                },
+                icon: const Icon(Icons.close),
+                color: Colors.grey.shade600,
+                padding: const EdgeInsets.all(16),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

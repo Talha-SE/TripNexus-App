@@ -57,106 +57,214 @@ class _TouristDashboardState extends State<TouristDashboard> {
 
   Widget _buildHomeTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Welcome back!',
-            style: GoogleFonts.poppins(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Color(AppConfig.textPrimaryColor),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Ready for your next adventure?',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              color: Color(AppConfig.textSecondaryColor),
-            ),
-          ),
+          _buildHeader(),
           const SizedBox(height: 24),
-          _buildQuickActions(),
-          const SizedBox(height: 24),
-          Text(
-            'AI-Powered Features',
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(AppConfig.textPrimaryColor),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Quick Actions',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(AppConfig.textPrimaryColor),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildQuickActions(),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'AI-Powered Features',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(AppConfig.textPrimaryColor),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {},
+                      child: Text('View All'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildAIFeatures(),
+                const SizedBox(height: 32),
+                Text(
+                  'Your Recent Trips',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(AppConfig.textPrimaryColor),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildRecentTrips(),
+                const SizedBox(height: 32),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          _buildAIFeatures(),
-          const SizedBox(height: 24),
-          Text(
-            'Your Recent Trips',
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(AppConfig.textPrimaryColor),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildRecentTrips(),
         ],
       ),
     );
   }
 
-  Widget _buildQuickActions() {
-    return Column(
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildQuickAction(Icons.auto_awesome, 'AI Planner', () => _navigateToScreen(const AITripPlannerScreen())),
-                    _buildQuickAction(Icons.camera_alt, 'Scan', () => _navigateToScreen(const LandmarkScannerScreen())),
-                    _buildQuickAction(Icons.wb_sunny, 'Weather', () => _navigateToScreen(const WeatherScreen())),
-                    _buildQuickAction(Icons.person_search, 'Advisors', () => _navigateToScreen(const AdvisorsSearchScreen())),
-                  ],
-                ),
-                const Divider(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildQuickAction(Icons.bookmark, 'Saved\nLandmarks', () => _navigateToScreen(const SavedLandmarksScreen())),
-                    _buildQuickAction(Icons.auto_stories, 'Saved\nPlans', () => _navigateToScreen(const SavedTripPlansScreen())),
-                  ],
-                ),
-              ],
-            ),
-          ),
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 30),
+      decoration: BoxDecoration(
+        color: Color(AppConfig.primaryColor),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(AppConfig.primaryColor).withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.menu, color: Colors.white),
+                    onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome back!',
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Ready for your next adventure?',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    child: const Icon(Icons.person, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Search Bar Placeholder
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.search, color: Colors.grey.shade400),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Where do you want to go?',
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey.shade400,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActions() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 4,
+      childAspectRatio: 0.85,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      children: [
+        _buildQuickActionItem(Icons.auto_awesome, 'AI Planner', () => _navigateToScreen(const AITripPlannerScreen()), Colors.purple.shade100, Colors.purple),
+        _buildQuickActionItem(Icons.camera_alt, 'Scan', () => _navigateToScreen(const LandmarkScannerScreen()), Colors.blue.shade100, Colors.blue),
+        _buildQuickActionItem(Icons.wb_sunny, 'Weather', () => _navigateToScreen(const WeatherScreen()), Colors.orange.shade100, Colors.orange),
+        _buildQuickActionItem(Icons.person_search, 'Advisors', () => _navigateToScreen(const AdvisorsSearchScreen()), Colors.green.shade100, Colors.green),
+        _buildQuickActionItem(Icons.bookmark, 'Saved\nLandmarks', () => _navigateToScreen(const SavedLandmarksScreen()), Colors.red.shade100, Colors.red),
+        _buildQuickActionItem(Icons.auto_stories, 'Saved\nPlans', () => _navigateToScreen(const SavedTripPlansScreen()), Colors.teal.shade100, Colors.teal),
       ],
     );
   }
 
-  Widget _buildQuickAction(IconData icon, String label, VoidCallback onTap) {
+  Widget _buildQuickActionItem(IconData icon, String label, VoidCallback onTap, Color bgColor, Color iconColor) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Color(AppConfig.primaryColor).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: bgColor.withOpacity(0.3),
+              shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Color(AppConfig.primaryColor), size: 28),
+            child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(height: 8),
           Text(
             label,
-            style: GoogleFonts.poppins(fontSize: 12),
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              height: 1.2,
+            ),
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -171,75 +279,140 @@ class _TouristDashboardState extends State<TouristDashboard> {
   }
 
   Widget _buildAIFeatures() {
-    return Column(
-      children: [
-        _buildFeatureCard(
-          Icons.smart_toy,
-          'AI Travel Assistant',
-          'Get personalized recommendations',
-          Color(AppConfig.primaryColor),
-        ),
-        const SizedBox(height: 12),
-        _buildFeatureCard(
-          Icons.eco,
-          'Eco-Friendly Options',
-          'Discover sustainable travel choices',
-          Color(AppConfig.accentColor),
-        ),
-        const SizedBox(height: 12),
-        _buildFeatureCard(
-          Icons.event,
-          'Local Events',
-          'Find exciting events at your destination',
-          Color(AppConfig.secondaryColor),
-        ),
-      ],
+    return SizedBox(
+      height: 180,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
+        children: [
+          _buildFeatureCard(
+            Icons.smart_toy,
+            'AI Travel Assistant',
+            'Get personalized\nrecommendations',
+            Color(AppConfig.primaryColor),
+            Colors.blue.shade50,
+          ),
+          const SizedBox(width: 16),
+          _buildFeatureCard(
+            Icons.eco,
+            'Eco-Friendly',
+            'Sustainable travel\nchoices for you',
+            Color(AppConfig.accentColor),
+            Colors.green.shade50,
+          ),
+          const SizedBox(width: 16),
+          _buildFeatureCard(
+            Icons.event,
+            'Local Events',
+            'Find exciting events\nat your destination',
+            Color(AppConfig.secondaryColor),
+            Colors.orange.shade50,
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildFeatureCard(IconData icon, String title, String subtitle, Color color) {
-    return Card(
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
+  Widget _buildFeatureCard(IconData icon, String title, String subtitle, Color color, Color bgColor) {
+    return Container(
+      width: 240,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          child: Icon(icon, color: color),
-        ),
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(subtitle, style: GoogleFonts.poppins(fontSize: 12)),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {},
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const Spacer(),
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Color(AppConfig.textPrimaryColor),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: Color(AppConfig.textSecondaryColor),
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildRecentTrips() {
-    return Center(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
       child: Column(
         children: [
-          Icon(Icons.explore_off, size: 64, color: Colors.grey.shade400),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.flight_takeoff, size: 40, color: Colors.grey.shade400),
+          ),
           const SizedBox(height: 16),
           Text(
-            'No trips yet',
+            'No trips planned yet',
             style: GoogleFonts.poppins(
               fontSize: 16,
-              color: Color(AppConfig.textSecondaryColor),
+              fontWeight: FontWeight.w600,
+              color: Color(AppConfig.textPrimaryColor),
             ),
           ),
           const SizedBox(height: 8),
+          Text(
+            'Start planning your dream vacation today!',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: Color(AppConfig.textSecondaryColor),
+            ),
+          ),
+          const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () => _navigateToScreen(const CreateTripScreen()),
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(AppConfig.primaryColor),
               foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
             ),
-            child: const Text('Create Your First Trip'),
+            child: const Text('Create New Trip'),
           ),
         ],
       ),
@@ -266,19 +439,21 @@ class _TouristDashboardState extends State<TouristDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        title: const Text('TripNexus'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      appBar: (_selectedIndex == 0 || _selectedIndex == 4)
+          ? null
+          : AppBar(
+              title: const Text('TripNexus'),
+              leading: IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () {},
+                ),
+              ],
+            ),
       drawer: CustomDrawer(
         userRole: 'Tourist',
         onLogout: _handleLogout,
