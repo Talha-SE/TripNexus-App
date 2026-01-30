@@ -9,7 +9,7 @@ import '../../models/saved_trip_plan_model.dart';
 import '../../widgets/formatted_text.dart';
 
 class AITripPlannerScreen extends StatefulWidget {
-  const AITripPlannerScreen({Key? key}) : super(key: key);
+  const AITripPlannerScreen({super.key});
 
   @override
   State<AITripPlannerScreen> createState() => _AITripPlannerScreenState();

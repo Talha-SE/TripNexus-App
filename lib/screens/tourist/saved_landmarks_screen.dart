@@ -9,7 +9,7 @@ import '../../models/saved_landmark_model.dart';
 import '../../widgets/formatted_text.dart';
 
 class SavedLandmarksScreen extends StatefulWidget {
-  const SavedLandmarksScreen({Key? key}) : super(key: key);
+  const SavedLandmarksScreen({super.key});
 
   @override
   State<SavedLandmarksScreen> createState() => _SavedLandmarksScreenState();

@@ -7,11 +7,11 @@ class FormattedText extends StatelessWidget {
   final Color textColor;
 
   const FormattedText({
-    Key? key,
+    super.key,
     required this.text,
     this.fontSize = 14,
     this.textColor = Colors.black87,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

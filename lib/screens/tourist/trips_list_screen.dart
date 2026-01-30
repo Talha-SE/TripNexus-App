@@ -9,7 +9,7 @@ import 'create_trip_screen.dart';
 import 'ai_trip_planner_screen.dart';
 
 class TripsListScreen extends StatefulWidget {
-  const TripsListScreen({Key? key}) : super(key: key);
+  const TripsListScreen({super.key});
 
   @override
   State<TripsListScreen> createState() => _TripsListScreenState();
@@ -96,24 +96,36 @@ class _TripsListScreenState extends State<TripsListScreen> {
       appBar: AppBar(
         title: Text(
           'My Trips',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
+            fontSize: 22,
             color: Colors.white,
           ),
         ),
         elevation: 0,
         centerTitle: true,
         backgroundColor: Colors.transparent,
+        leading: const SizedBox(), // Hide back button if it exists/not needed or generic
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.7),
-                Colors.transparent,
-              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: Theme.of(context).brightness == Brightness.dark
+                  ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                  : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
             ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
         ),
       ),
@@ -175,14 +187,7 @@ class _TripsListScreenState extends State<TripsListScreen> {
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.grey[50]!,
-              Colors.white,
-            ],
-          ),
+          color: Theme.of(context).scaffoldBackgroundColor,
         ),
         child: _isLoading
             ? Center(
@@ -210,18 +215,22 @@ class _TripsListScreenState extends State<TripsListScreen> {
                         const SizedBox(height: 24),
                         Text(
                           'No trips yet',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Color(AppConfig.textPrimaryColor),
+                          style: GoogleFonts.outfit(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).brightness == Brightness.dark 
+                                ? Colors.white 
+                                : Color(AppConfig.textPrimaryColor),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Start planning your next adventure!',
                           style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.grey.shade500,
+                            fontSize: 15,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white60
+                                : Colors.grey.shade500,
                           ),
                         ),
                       ],
@@ -244,21 +253,23 @@ class _TripsListScreenState extends State<TripsListScreen> {
   }
 
   Widget _buildTripCard(TripModel trip) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
         child: InkWell(
           onTap: () {
             // Navigate to trip details
@@ -297,9 +308,9 @@ class _TripsListScreenState extends State<TripsListScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.black.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.3)),
+                        border: Border.all(color: Colors.white.withOpacity(0.2)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -334,8 +345,8 @@ class _TripsListScreenState extends State<TripsListScreen> {
                       children: [
                         Text(
                           trip.title,
-                          style: GoogleFonts.poppins(
-                            fontSize: 22,
+                          style: GoogleFonts.outfit(
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -360,47 +371,59 @@ class _TripsListScreenState extends State<TripsListScreen> {
                 ],
               ),
               
-              // Details Section
+              if (trip.budget != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Divider(
+                    height: 1, 
+                    color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.1)
+                  ),
+                ),
+                
+              // Trip Details Section
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
                     Row(
                       children: [
                         _buildInfoItem(
-                          Icons.calendar_today,
+                          Icons.calendar_today_rounded,
                           'Date',
                           '${DateFormat('MMM dd').format(trip.startDate)} - ${DateFormat('MMM dd').format(trip.endDate)}',
                         ),
-                        if (trip.budget != null) ...[
-                          const SizedBox(width: 24),
-                          _buildInfoItem(
-                            Icons.attach_money,
-                            'Budget',
-                            '\$${trip.budget!.toStringAsFixed(0)}',
-                          ),
-                        ],
+                        const Spacer(),
+                        _buildInfoItem(
+                          Icons.monetization_on_outlined,
+                          'Budget',
+                          '\$${trip.budget!.toStringAsFixed(0)}',
+                          isRightAligned: true,
+                        ),
                       ],
                     ),
                     if (trip.isEcoFriendly) ...[
                       const SizedBox(height: 16),
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.green.withOpacity(isDark ? 0.15 : 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.green.withOpacity(isDark ? 0.3 : 0.2),
+                            width: 1,
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.eco, size: 18, color: Colors.green),
-                            const SizedBox(width: 8),
+                            Icon(Icons.eco_rounded, size: 20, color: Colors.green.shade400),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'This is an eco-friendly trip!',
+                                'Eco-Friendly Trip',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: Colors.green[700],
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 13,
+                                  color: isDark ? Colors.green.shade300 : Colors.green[700],
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
@@ -408,60 +431,23 @@ class _TripsListScreenState extends State<TripsListScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         IconButton(
-                          onPressed: () {
-                            // Edit functionality
-                          },
-                          icon: Icon(Icons.edit_outlined, color: Colors.grey[600], size: 20),
+                          onPressed: () {},
+                          icon: Icon(Icons.edit_note_rounded, color: isDark ? Colors.white60 : Colors.grey[600], size: 22),
                           tooltip: 'Edit Trip',
+                          splashRadius: 24,
                         ),
                         IconButton(
                           onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text(
-                                  'Delete Trip',
-                                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                                ),
-                                content: Text(
-                                  'Are you sure you want to delete this trip?',
-                                  style: GoogleFonts.poppins(),
-                                ),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text(
-                                      'Cancel',
-                                      style: GoogleFonts.poppins(color: Colors.grey),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      if (trip.id != null) {
-                                        _deleteTrip(trip.id!);
-                                      }
-                                    },
-                                    child: Text(
-                                      'Delete',
-                                      style: GoogleFonts.poppins(
-                                        color: Color(AppConfig.errorColor),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
+                           _confirmDeleteTrip(trip);
                           },
-                          icon: Icon(Icons.delete_outline, color: Color(AppConfig.errorColor), size: 20),
+                          icon: Icon(Icons.delete_outline_rounded, color: Color(AppConfig.errorColor), size: 22),
                           tooltip: 'Delete Trip',
+                          splashRadius: 24,
                         ),
                       ],
                     ),
@@ -474,20 +460,72 @@ class _TripsListScreenState extends State<TripsListScreen> {
       ),
     );
   }
+  
+  void _confirmDeleteTrip(TripModel trip) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        title: Text(
+          'Delete Trip',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${trip.title}"?',
+          style: GoogleFonts.poppins(
+            color: isDark ? Colors.white70 : Colors.black87,
+          ),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(color: Colors.grey),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (trip.id != null) {
+                _deleteTrip(trip.id!);
+              }
+            },
+            child: Text(
+              'Delete',
+              style: GoogleFonts.poppins(
+                color: Color(AppConfig.errorColor),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildInfoItem(IconData icon, String label, String value) {
+  Widget _buildInfoItem(IconData icon, String label, String value, {bool isRightAligned = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: isRightAligned ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: Colors.grey[500]),
-            const SizedBox(width: 4),
+            Icon(icon, size: 16, color: isDark ? Colors.white60 : Colors.grey[500]),
+            const SizedBox(width: 6),
             Text(
               label,
               style: GoogleFonts.poppins(
                 fontSize: 12,
-                color: Colors.grey[500],
+                color: isDark ? Colors.white60 : Colors.grey[500],
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -496,9 +534,9 @@ class _TripsListScreenState extends State<TripsListScreen> {
         Text(
           value,
           style: GoogleFonts.poppins(
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(AppConfig.textPrimaryColor),
+            color: isDark ? Colors.white : Color(AppConfig.textPrimaryColor),
           ),
         ),
       ],

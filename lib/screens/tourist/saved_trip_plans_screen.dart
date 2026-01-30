@@ -8,7 +8,7 @@ import '../../models/saved_trip_plan_model.dart';
 import '../../widgets/formatted_text.dart';
 
 class SavedTripPlansScreen extends StatefulWidget {
-  const SavedTripPlansScreen({Key? key}) : super(key: key);
+  const SavedTripPlansScreen({super.key});
 
   @override
   State<SavedTripPlansScreen> createState() => _SavedTripPlansScreenState();

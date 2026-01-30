@@ -1234,10 +1234,10 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(28),
               border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
             ),
             child: Column(
@@ -1251,13 +1251,13 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.location_on_rounded, color: Colors.white, size: 22),
+                              const Icon(Icons.location_on_rounded, color: Colors.white, size: 20),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   _selectedCity?.name ?? 'Select City',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 28,
+                                    fontSize: 24,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.white,
                                     letterSpacing: -0.5,
@@ -1267,11 +1267,11 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           Text(
                             DateFormat('EEEE, d MMMM').format(DateTime.now()),
                             style: GoogleFonts.poppins(
-                              fontSize: 15,
+                              fontSize: 14,
                               color: Colors.white.withOpacity(0.7),
                               fontWeight: FontWeight.w500,
                             ),
@@ -1280,15 +1280,15 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         isDay ? 'DAY' : 'NIGHT',
                         style: GoogleFonts.poppins(
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                           letterSpacing: 1,
@@ -1297,8 +1297,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -1309,7 +1308,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                         fit: BoxFit.scaleDown,
                         child: Text(
                           icon,
-                          style: const TextStyle(fontSize: 80, height: 1),
+                          style: const TextStyle(fontSize: 64, height: 1),
                         ),
                       ),
                     ),
@@ -1329,7 +1328,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                                 Text(
                                   '${temp?.round() ?? '--'}',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 64,
+                                    fontSize: 54,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                     height: 0.9,
@@ -1338,7 +1337,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                                 Text(
                                   '°',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 32,
+                                    fontSize: 24,
                                     fontWeight: FontWeight.w300,
                                     color: Colors.white,
                                     height: 1,
@@ -1351,19 +1350,19 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                             description,
                             textAlign: TextAlign.right,
                             style: GoogleFonts.poppins(
-                              fontSize: 18,
+                              fontSize: 16,
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             'Feels like ${feelsLike?.round() ?? '--'}°',
                             textAlign: TextAlign.right,
                             style: GoogleFonts.poppins(
-                              fontSize: 13,
+                              fontSize: 12,
                               color: Colors.white.withOpacity(0.8),
                               fontWeight: FontWeight.w500,
                             ),
@@ -1373,28 +1372,28 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.white.withOpacity(0.05)),
                     ),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.yellow.withOpacity(0.2),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.auto_awesome_rounded, color: Colors.yellow, size: 22),
+                          child: const Icon(Icons.auto_awesome_rounded, color: Colors.yellow, size: 18),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1402,20 +1401,20 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                               Text(
                                 'SMART TRAVEL ADVICE',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 10,
+                                  fontSize: 9,
                                   fontWeight: FontWeight.w800,
                                   color: Colors.yellow.shade200,
                                   letterSpacing: 1,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Text(
                                 _getSmartAdvice(),
                                 style: GoogleFonts.poppins(
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                   color: Colors.white.withOpacity(0.9),
-                                  height: 1.4,
+                                  height: 1.3,
                                 ),
                               ),
                             ],
@@ -1472,27 +1471,27 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
 
   Widget _buildDetailCard(String label, String value, IconData icon, Color color) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: Colors.white, size: 20),
+                child: Icon(icon, color: Colors.white, size: 18),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1501,7 +1500,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                     Text(
                       value,
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
@@ -1509,7 +1508,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                     Text(
                       label,
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: Colors.white70,
                       ),
@@ -1532,7 +1531,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
     final weatherCodes = (hourly['weather_code'] as List).cast<num>();
 
     return SizedBox(
-      height: 150,
+      height: 130,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -1545,40 +1544,40 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
           return Stack(
             children: [
               Container(
-                width: 80,
+                width: 75,
                 margin: const EdgeInsets.only(right: 12),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                     child: Container(
                       decoration: BoxDecoration(
                         color: isNow ? Colors.white.withOpacity(0.3) : Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isNow ? Colors.white.withOpacity(0.4) : Colors.white.withOpacity(0.1),
                         ),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             isNow ? 'Now' : DateFormat('HH:mm').format(time),
                             style: GoogleFonts.poppins(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: isNow ? FontWeight.w700 : FontWeight.w500,
                               color: Colors.white,
                             ),
                           ),
                           Text(
                             _meteoService.getWeatherIcon(weatherCodes[index].toInt(), true),
-                            style: const TextStyle(fontSize: 28),
+                            style: const TextStyle(fontSize: 24),
                           ),
                           Text(
                             '${temps[index].round()}°',
                             style: GoogleFonts.poppins(
-                              fontSize: 16,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
@@ -1620,16 +1619,16 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
         final description = _meteoService.getWeatherDescription(weatherCodes[index].toInt());
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: 10),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isToday ? Colors.white.withOpacity(0.18) : Colors.white.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isToday ? Colors.white.withOpacity(0.3) : Colors.white.withOpacity(0.1),
                     width: 1,
@@ -1645,7 +1644,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                           Text(
                             isToday ? 'Today' : DateFormat('EEEE').format(date),
                             style: GoogleFonts.poppins(
-                              fontSize: 16,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
@@ -1653,7 +1652,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                           Text(
                             DateFormat('MMM d').format(date),
                             style: GoogleFonts.poppins(
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.w500,
                               color: Colors.white70,
                             ),
@@ -1670,7 +1669,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                             children: [
                               Text(
                                 _meteoService.getWeatherIcon(weatherCodes[index].toInt(), true),
-                                style: const TextStyle(fontSize: 28),
+                                style: const TextStyle(fontSize: 24),
                               ),
                               if (alert != null) const SizedBox(width: 8),
                               if (alert != null)

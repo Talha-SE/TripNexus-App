@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../config/app_config.dart';
 
 class PrivacySecurityScreen extends StatefulWidget {
-  const PrivacySecurityScreen({Key? key}) : super(key: key);
+  const PrivacySecurityScreen({super.key});
 
   @override
   State<PrivacySecurityScreen> createState() => _PrivacySecurityScreenState();
@@ -215,7 +215,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       ),
       value: value,
       onChanged: onChanged,
-      activeColor: Color(AppConfig.primaryColor),
+      activeThumbColor: Color(AppConfig.primaryColor),
     );
   }
 

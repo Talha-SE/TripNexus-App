@@ -4,6 +4,9 @@ import 'screens/auth/welcome_screen.dart';
 import 'screens/tourist/tourist_dashboard.dart';
 import 'screens/advisor/advisor_dashboard.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
+import 'services/weather_notification_service.dart';
+import 'services/news_notification_service.dart';
 import 'utils/app_theme.dart';
 
 void main() async {
@@ -62,6 +65,20 @@ class _SplashScreenState extends State<SplashScreen> {
     
     try {
       print('🔄 Initializing services...');
+      
+      // Initialize notification services first
+      final notificationService = NotificationService.getInstance();
+      await notificationService.initialize();
+      print('✅ Notification service initialized');
+      
+      final weatherNotificationService = WeatherNotificationService.getInstance();
+      await weatherNotificationService.initialize();
+      print('✅ Weather notification service initialized');
+      
+      final newsNotificationService = NewsNotificationService.getInstance();
+      await newsNotificationService.initialize();
+      print('✅ News notification service initialized');
+      
       // Start initialization immediately
       final authServiceFuture = AuthService.getInstance();
       

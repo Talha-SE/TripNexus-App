@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'open_meteo_service.dart';
+import 'notification_service.dart';
+import '../models/notification_model.dart';
 
 class WeatherNotificationService {
   static WeatherNotificationService? _instance;
@@ -13,6 +15,7 @@ class WeatherNotificationService {
   WeatherNotificationService._();
 
   final _meteoService = OpenMeteoService.getInstance();
+  final _notificationService = NotificationService.getInstance();
   Timer? _updateTimer;
   List<SavedWeatherCity> _savedCities = [];
 
@@ -109,12 +112,35 @@ class WeatherNotificationService {
   }
 
   void _showWeatherNotification(SavedWeatherCity city) {
-    // In a real app, this would use flutter_local_notifications
-    // For now, we'll just update the last notification time
-    print('Weather notification for ${city.name}');
-    // The actual notification would show:
-    // Title: "Weather Update - ${city.name}"
-    // Body: "${temp}°C - ${description}"
+    if (city.lastWeatherData != null) {
+      final temp = city.lastWeatherData!['current']['temperature_2m'];
+      final weatherCode = city.lastWeatherData!['current']['weather_code'];
+      final description = _getWeatherDescription(weatherCode);
+      
+      _notificationService.showNotification(
+        title: '🌤️ Weather Update - ${city.name}',
+        body: '$temp°C - $description',
+        type: NotificationType.weather,
+        data: {
+          'city': city.name,
+          'temperature': temp,
+          'weather_code': weatherCode,
+          'latitude': city.latitude,
+          'longitude': city.longitude,
+        },
+      );
+    }
+  }
+
+  String _getWeatherDescription(int code) {
+    if (code == 0) return 'Clear sky';
+    if (code <= 3) return 'Partly cloudy';
+    if (code <= 48) return 'Foggy';
+    if (code <= 67) return 'Rainy';
+    if (code <= 77) return 'Snowy';
+    if (code <= 82) return 'Showers';
+    if (code <= 86) return 'Snow showers';
+    return 'Thunderstorm';
   }
 
   void dispose() {

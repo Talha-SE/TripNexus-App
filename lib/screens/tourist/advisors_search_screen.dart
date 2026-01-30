@@ -5,7 +5,7 @@ import '../../models/user_model.dart';
 import '../../services/mongodb_service.dart';
 
 class AdvisorsSearchScreen extends StatefulWidget {
-  const AdvisorsSearchScreen({Key? key}) : super(key: key);
+  const AdvisorsSearchScreen({super.key});
 
   @override
   State<AdvisorsSearchScreen> createState() => _AdvisorsSearchScreenState();

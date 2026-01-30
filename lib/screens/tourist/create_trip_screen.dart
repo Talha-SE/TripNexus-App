@@ -9,7 +9,7 @@ import '../../services/mistral_service.dart';
 import '../../services/weather_service.dart';
 
 class CreateTripScreen extends StatefulWidget {
-  const CreateTripScreen({Key? key}) : super(key: key);
+  const CreateTripScreen({super.key});
 
   @override
   State<CreateTripScreen> createState() => _CreateTripScreenState();
@@ -26,7 +26,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   DateTime? _endDate;
   bool _isEcoFriendly = false;
   bool _isLoading = false;
-  List<String> _activities = [];
+  final List<String> _activities = [];
   final _activityController = TextEditingController();
 
   @override

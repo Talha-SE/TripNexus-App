@@ -7,7 +7,7 @@ import 'notification_settings_screen.dart';
 import 'privacy_security_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -187,7 +187,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: Color(AppConfig.primaryColor),
+        activeThumbColor: Color(AppConfig.primaryColor),
       ),
     );
   }

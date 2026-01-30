@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/app_config.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
-  const NotificationSettingsScreen({Key? key}) : super(key: key);
+  const NotificationSettingsScreen({super.key});
 
   @override
   State<NotificationSettingsScreen> createState() => _NotificationSettingsScreenState();
@@ -18,6 +19,28 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   bool _emailNotifications = true;
   bool _smsNotifications = false;
   bool _pushNotifications = true;
+  bool _weatherNotifications = true;
+  bool _newsNotifications = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _weatherNotifications = prefs.getBool('weather_notifications') ?? true;
+      _newsNotifications = prefs.getBool('news_notifications') ?? true;
+      _pushNotifications = prefs.getBool('push_notifications') ?? true;
+    });
+  }
+
+  Future<void> _saveSetting(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +52,32 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _buildSection(
+            icon: Icons.wb_sunny_outlined,
+            title: 'Smart Notifications',
+            children: [
+              _buildSwitchTile(
+                title: 'Weather Forecast Notifications',
+                subtitle: 'Auto-check weather for your searched locations',
+                value: _weatherNotifications,
+                onChanged: (value) {
+                  setState(() => _weatherNotifications = value);
+                  _saveSetting('weather_notifications', value);
+                },
+              ),
+              const Divider(),
+              _buildSwitchTile(
+                title: 'News Alert Notifications',
+                subtitle: 'Get travel news updates for your destinations',
+                value: _newsNotifications,
+                onChanged: (value) {
+                  setState(() => _newsNotifications = value);
+                  _saveSetting('news_notifications', value);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           _buildSection(
             icon: Icons.notifications_active,
             title: 'Trip Notifications',
@@ -220,7 +269,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       ),
       value: value,
       onChanged: onChanged,
-      activeColor: Color(AppConfig.primaryColor),
+      activeThumbColor: Color(AppConfig.primaryColor),
     );
   }
 }
