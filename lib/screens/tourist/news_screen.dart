@@ -140,6 +140,7 @@ class _NewsScreenState extends State<NewsScreen> {
       body: Column(
         children: [
           _buildHeader(),
+          _buildSearchBar(),
           _buildFilters(),
           Expanded(
             child: _isLoading
@@ -149,7 +150,7 @@ class _NewsScreenState extends State<NewsScreen> {
                     : _filteredNews.isEmpty
                         ? _buildEmptyState()
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                             physics: const BouncingScrollPhysics(),
                             itemCount: _filteredNews.length,
                             itemBuilder: (context, index) {
@@ -158,6 +159,67 @@ class _NewsScreenState extends State<NewsScreen> {
                           ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
+          ),
+        ),
+        child: TextField(
+          controller: _searchController,
+          style: GoogleFonts.poppins(
+            color: isDark ? Colors.white : const Color(0xFF1E293B),
+            fontSize: 14,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Search city (e.g., Paris, Tokyo)...',
+            hintStyle: GoogleFonts.poppins(
+              color: isDark ? Colors.white38 : Colors.grey.shade400,
+              fontSize: 14,
+            ),
+            prefixIcon: Icon(
+              Icons.search_rounded,
+              color: isDark ? Colors.white38 : Colors.grey.shade400,
+              size: 20,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                Icons.send_rounded,
+                color: Color(AppConfig.primaryColor),
+                size: 18,
+              ),
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                _fetchNews(_searchController.text);
+                setState(() => _activeFilter = null);
+              },
+            ),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+          onSubmitted: (value) {
+            _fetchNews(value);
+            setState(() => _activeFilter = null);
+          },
+        ),
       ),
     );
   }
@@ -234,7 +296,7 @@ class _NewsScreenState extends State<NewsScreen> {
   Widget _buildHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+      padding: const EdgeInsets.fromLTRB(24, 64, 24, 24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -255,82 +317,44 @@ class _NewsScreenState extends State<NewsScreen> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: const Icon(Icons.arrow_back_ios_new_rounded, 
+                size: 18, 
+                color: Colors.white
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
-                  ),
-                  child: const Icon(Icons.arrow_back_ios_new_rounded, 
-                    size: 18, 
-                    color: Colors.white
-                  ),
+              Text(
+                'Events & News',
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
                 ),
               ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Events & News',
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    'Stay informed about local updates',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
-                  ),
-                ],
+              Text(
+                'Stay informed about local updates',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withOpacity(0.8),
+                ),
               ),
             ],
-          ),
-          const SizedBox(height: 24),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-              ),
-            ),
-            child: TextField(
-              controller: _searchController,
-              style: GoogleFonts.poppins(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Search city (e.g., Paris, Tokyo)...',
-                hintStyle: GoogleFonts.poppins(color: Colors.white.withOpacity(0.6), fontSize: 14),
-                prefixIcon: Icon(Icons.search_rounded, color: Colors.white.withOpacity(0.8)),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.send_rounded, color: Colors.white),
-                  onPressed: () {
-                    FocusScope.of(context).unfocus();
-                    _fetchNews(_searchController.text);
-                    setState(() => _activeFilter = null);
-                  },
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              ),
-              onSubmitted: (value) {
-                _fetchNews(value);
-                setState(() => _activeFilter = null);
-              },
-            ),
           ),
         ],
       ),

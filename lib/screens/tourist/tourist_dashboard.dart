@@ -328,34 +328,37 @@ class _TouristDashboardState extends State<TouristDashboard> {
                               _buildHeaderIconButton(
                                 icon: Icons.notifications_none_rounded,
                                 onTap: _navigateToNotifications,
+                                showBorder: false,
                               ),
                               if (_unreadCount > 0)
                                 Positioned(
-                                  top: 4,
-                                  right: 4,
+                                  top: 8,
+                                  right: 8,
                                   child: Container(
-                                    width: 10,
-                                    height: 10,
-                                    decoration: BoxDecoration(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
                                       color: Colors.redAccent,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: isDark ? const Color(0xFF1E293B) : Color(AppConfig.primaryColor), width: 2),
                                     ),
                                   ),
                                 ),
                             ],
                           ),
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withOpacity(0.2)),
-                            ),
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: Colors.white.withOpacity(0.2),
-                              child: const Icon(Icons.person_rounded, color: Colors.white, size: 24),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => setState(() => _selectedIndex = 5),
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                              ),
+                              child: CircleAvatar(
+                                radius: 18,
+                                backgroundColor: Colors.white.withOpacity(0.1),
+                                child: const Icon(Icons.person_rounded, color: Colors.white, size: 20),
+                              ),
                             ),
                           ),
                         ],
@@ -422,18 +425,28 @@ class _TouristDashboardState extends State<TouristDashboard> {
     );
   }
 
-  Widget _buildHeaderIconButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildHeaderIconButton({
+    required IconData icon, 
+    required VoidCallback onTap, 
+    bool showBorder = true,
+  }) {
     return Container(
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: showBorder ? Border.all(color: Colors.white.withOpacity(0.15), width: 1) : null,
       ),
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white),
-        onPressed: onTap,
-        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-        padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Center(
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ),
       ),
     );
   }
