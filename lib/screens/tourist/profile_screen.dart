@@ -7,6 +7,7 @@ import '../settings/privacy_security_screen.dart';
 import '../settings/notification_settings_screen.dart';
 import '../settings/settings_screen.dart';
 import 'edit_profile_screen.dart';
+import 'did_verification_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -497,6 +498,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   if (result == true) {
                     _loadUserProfile();
                   }
+                },
+              ),
+              _buildDivider(),
+              _buildActionButton(
+                icon: Icons.fingerprint_rounded,
+                label: 'Fast Hotel Check-in (DID)',
+                color: Color(AppConfig.primaryColor),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DIDVerificationScreen(),
+                    ),
+                  );
                 },
               ),
               _buildDivider(),

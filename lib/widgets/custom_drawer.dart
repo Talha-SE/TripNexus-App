@@ -26,78 +26,63 @@ class CustomDrawer extends StatelessWidget {
     return Drawer(
       backgroundColor: backgroundColor,
       elevation: 0,
-      width: MediaQuery.of(context).size.width * 0.85,
+      width: MediaQuery.of(context).size.width * 0.8,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topRight: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          topRight: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
       ),
       child: Column(
         children: [
-          // Dynamic Header
+          // Elegant Header
           Container(
-            padding: const EdgeInsets.fromLTRB(28, 60, 24, 40),
+            padding: const EdgeInsets.fromLTRB(24, 64, 24, 32),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                    : [const Color(0xFF3BA1F4), const Color(0xFF28BAF0)], // Much vibrant light blue
-              ),
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
               borderRadius: const BorderRadius.only(
-                bottomRight: Radius.circular(50),
+                bottomRight: Radius.circular(40),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: (isDark ? Colors.black : const Color(0xFF3BA1F4)).withOpacity(isDark ? 0.3 : 0.2),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
-                ),
-              ],
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Color(AppConfig.primaryColor).withOpacity(0.2),
                       width: 2,
                     ),
                   ),
-                  child: const CircleAvatar(
-                    radius: 36,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 40, color: Colors.grey),
+                  child: CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Color(AppConfig.primaryColor).withOpacity(0.1),
+                    child: Icon(Icons.person_rounded, size: 36, color: Color(AppConfig.primaryColor)),
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Welcome Back!',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.3,
+                        'TripNexus',
+                        style: GoogleFonts.outfit(
+                          color: Color(AppConfig.primaryColor),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 2),
                       Text(
                         userRole,
                         style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 24,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
@@ -107,112 +92,104 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
           
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
-          // Drawer Items
+          // Navigation Items
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               physics: const BouncingScrollPhysics(),
               children: [
                 _buildModernDrawerItem(
                   context: context,
-                  icon: Icons.home_rounded,
-                  title: 'Home',
+                  icon: Icons.grid_view_rounded,
+                  title: 'Dashboard',
                   onTap: () => Navigator.pop(context),
-                  color: const Color(0xFF5DADE2), // Soft Blue
+                  isActive: true,
                 ),
-                const SizedBox(height: 8),
                 _buildModernDrawerItem(
                   context: context,
-                  icon: Icons.person_rounded,
-                  title: 'Profile',
+                  icon: Icons.person_outline_rounded,
+                  title: 'My Profile',
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                    );
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                   },
-                  color: const Color(0xFFA569BD), // Soft Purple
                 ),
-                const SizedBox(height: 8),
                 _buildModernDrawerItem(
                   context: context,
-                  icon: Icons.settings_rounded,
+                  icon: Icons.settings_outlined,
                   title: 'Settings',
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                    );
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
                   },
-                  color: const Color(0xFFF5B041), // Soft Orange
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  child: Divider(height: 1),
+                
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  child: Row(
+                    children: [
+                      Text(
+                        'SUPPORT',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white24 : Colors.grey.shade400,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: Divider(color: isDark ? Colors.white10 : Colors.grey.shade100, height: 1)),
+                    ],
+                  ),
                 ),
+                
                 _buildModernDrawerItem(
                   context: context,
                   icon: Icons.help_outline_rounded,
-                  title: 'Help & Support',
+                  title: 'Help Center',
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
-                    );
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpSupportScreen()));
                   },
-                  color: const Color(0xFF48C9B0), // Soft Teal
                 ),
-                const SizedBox(height: 8),
                 _buildModernDrawerItem(
                   context: context,
                   icon: Icons.info_outline_rounded,
-                  title: 'About',
+                  title: 'About TripNexus',
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AboutScreen()),
-                    );
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutScreen()));
                   },
-                  color: const Color(0xFF9FA8DA), // Soft Indigo
                 ),
               ],
             ),
           ),
           
-          // Bottom Actions
+          // Logout Section
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+            padding: const EdgeInsets.all(24),
             child: InkWell(
               onTap: onLogout,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF3B1A1A) : const Color(0xFFFFF0F0),
-                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.red.withOpacity(0.1)),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.logout_rounded, 
-                      color: isDark ? const Color(0xFFFF6B6B) : const Color(0xFFE53935), 
-                      size: 24
-                    ),
-                    const SizedBox(width: 12),
+                    const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                    const SizedBox(width: 10),
                     Text(
-                      'Logout',
+                      'Sign Out',
                       style: GoogleFonts.poppins(
-                        color: isDark ? const Color(0xFFFF6B6B) : const Color(0xFFE53935),
+                        color: Colors.redAccent,
                         fontWeight: FontWeight.w600,
-                        fontSize: 18,
-                        letterSpacing: 0.5,
+                        fontSize: 15,
                       ),
                     ),
                   ],
@@ -230,53 +207,59 @@ class CustomDrawer extends StatelessWidget {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    required Color color,
+    bool isActive = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Color(AppConfig.primaryColor);
     
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        splashColor: color.withOpacity(0.1),
-        highlightColor: color.withOpacity(0.05),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(isDark ? 0.15 : 0.08),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isActive 
+                  ? primaryColor.withOpacity(isDark ? 0.15 : 0.08)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon, 
+                  color: isActive 
+                      ? primaryColor 
+                      : (isDark ? Colors.white60 : const Color(0xFF64748B)), 
+                  size: 22
                 ),
-                child: Icon(icon, color: color, size: 26),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    color: isDark ? Colors.white : const Color(0xFF2D3748),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      color: isActive 
+                          ? primaryColor 
+                          : (isDark ? Colors.white : const Color(0xFF1E293B)),
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: isDark ? Colors.white24 : Colors.grey.shade400,
-                size: 20,
-              ),
-            ],
+                if (isActive)
+                  Container(
+                    width: 4,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
