@@ -1,49 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:animations/animations.dart';
 import '../config/app_config.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
+    const primaryBlue = Color(0xFF2563EB); // More modern, vibrant blue
+    const scaffoldBg = Color(0xFFF8FAFC); // Cleaner off-white
+    const cardBg = Colors.white;
+    const textPrimary = Color(0xFF0F172A); // Slate 900
+    const textSecondary = Color(0xFF475569); // Slate 600
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Color(AppConfig.primaryColor),
-        primary: Color(AppConfig.primaryColor),
-        secondary: Color(AppConfig.secondaryColor),
-        error: Color(AppConfig.errorColor),
-        surface: Color(AppConfig.backgroundColor),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeThroughPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
       ),
-      scaffoldBackgroundColor: Color(AppConfig.backgroundColor),
-      textTheme: GoogleFonts.poppinsTextTheme(),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryBlue,
+        primary: primaryBlue,
+        secondary: const Color(0xFFF59E0B), // Amber 500
+        tertiary: const Color(0xFF10B981), // Emerald 500
+        error: const Color(0xFFEF4444), // Red 500
+        surface: cardBg,
+        onSurface: textPrimary,
+        background: scaffoldBg,
+      ),
+      scaffoldBackgroundColor: scaffoldBg,
+      textTheme: GoogleFonts.poppinsTextTheme().apply(
+        bodyColor: textPrimary,
+        displayColor: textPrimary,
+      ),
       appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: Color(AppConfig.primaryColor),
-        foregroundColor: Colors.white,
+        backgroundColor: scaffoldBg,
+        foregroundColor: textPrimary,
+        surfaceTintColor: Colors.transparent,
         titleTextStyle: GoogleFonts.poppins(
-          fontSize: 20,
+          fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: Colors.white,
+          color: textPrimary,
         ),
+        iconTheme: const IconThemeData(color: textPrimary),
       ),
       cardTheme: CardThemeData(
-        elevation: 2,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: Colors.grey.shade100, width: 1),
         ),
-        color: Color(AppConfig.cardColor),
+        color: cardBg,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          elevation: 2,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(16),
           ),
+          backgroundColor: primaryBlue,
+          foregroundColor: Colors.white,
           textStyle: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
           ),
         ),
       ),
@@ -51,23 +76,23 @@ class AppTheme {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Color(AppConfig.primaryColor), width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: primaryBlue, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Color(AppConfig.errorColor)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFEF4444)),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        hintStyle: GoogleFonts.poppins(color: Colors.grey.shade500),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        hintStyle: GoogleFonts.poppins(color: textSecondary.withOpacity(0.5), fontSize: 14),
       ),
     );
   }
@@ -80,6 +105,12 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeThroughPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
         seedColor: Color(AppConfig.primaryColor),

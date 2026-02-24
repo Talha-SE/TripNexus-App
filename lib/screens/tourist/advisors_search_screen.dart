@@ -93,13 +93,16 @@ class _AdvisorsSearchScreenState extends State<AdvisorsSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           'Find Advisors',
           style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
             color: Colors.white,
           ),
         ),
@@ -109,34 +112,35 @@ class _AdvisorsSearchScreenState extends State<AdvisorsSearchScreen> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.7),
-                Colors.transparent,
-              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
             ),
           ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.grey[50]!,
-              Colors.white,
-            ],
-          ),
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
         ),
         child: Column(
           children: [
+            const SizedBox(height: 100),
             // Header Space & Search
             Container(
-              padding: const EdgeInsets.fromLTRB(16, 100, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -150,14 +154,14 @@ class _AdvisorsSearchScreenState extends State<AdvisorsSearchScreen> {
                 children: [
                   TextField(
                     controller: _searchController,
-                    style: GoogleFonts.poppins(),
+                    style: GoogleFonts.poppins(color: isDark ? Colors.white : Colors.black87),
                     decoration: InputDecoration(
                       hintText: 'Search advisors, expertise...',
                       hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                      prefixIcon: Icon(Icons.search, color: Color(AppConfig.primaryColor)),
+                      prefixIcon: Icon(Icons.search_rounded, color: Color(AppConfig.primaryColor)),
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear),
+                              icon: const Icon(Icons.clear_rounded),
                               onPressed: () {
                                 _searchController.clear();
                                 _applyFiltersAndSort();
@@ -165,7 +169,7 @@ class _AdvisorsSearchScreenState extends State<AdvisorsSearchScreen> {
                             )
                           : null,
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: isDark ? const Color(0xFF0F172A) : Colors.grey[100],
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
@@ -188,13 +192,13 @@ class _AdvisorsSearchScreenState extends State<AdvisorsSearchScreen> {
                           height: 24,
                           width: 1,
                           margin: const EdgeInsets.symmetric(horizontal: 16),
-                          color: Colors.grey[300],
+                          color: isDark ? Colors.white10 : Colors.grey[300],
                         ),
                         Text(
                           'Sort:',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: isDark ? Colors.white38 : Colors.grey[600],
                             fontWeight: FontWeight.w500,
                           ),
                         ),

@@ -57,8 +57,8 @@ static const String mistralModel = 'mistral-small-latest';
 ```
 
 ### Supported Models
-- `mistral-small-latest` - Recommended, supports vision
-- `mistral-medium-latest` - More powerful, higher cost
+- `mistral-small-latest` - Optimized for speed and reasoning
+- `mistral-medium-latest` - More powerful, supports vision
 - `mistral-large-latest` - Most capable, highest cost
 
 ### Testing Mistral API

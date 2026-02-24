@@ -37,22 +37,22 @@ class CustomDrawer extends StatelessWidget {
         children: [
           // Dynamic Header
           Container(
-            padding: const EdgeInsets.fromLTRB(24, 60, 24, 30),
+            padding: const EdgeInsets.fromLTRB(28, 60, 24, 40),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: isDark
                     ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                    : [primaryColor, primaryColor.withOpacity(0.85)],
+                    : [const Color(0xFF3BA1F4), const Color(0xFF28BAF0)], // Much vibrant light blue
               ),
               borderRadius: const BorderRadius.only(
-                bottomRight: Radius.circular(40),
+                bottomRight: Radius.circular(50),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (isDark ? Colors.black : primaryColor).withOpacity(0.3),
-                  blurRadius: 20,
+                  color: (isDark ? Colors.black : const Color(0xFF3BA1F4)).withOpacity(isDark ? 0.3 : 0.2),
+                  blurRadius: 24,
                   offset: const Offset(0, 10),
                 ),
               ],
@@ -60,22 +60,22 @@ class CustomDrawer extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(3),
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.4),
-                      width: 1.5,
+                      color: Colors.white.withOpacity(0.8),
+                      width: 2,
                     ),
                   ),
                   child: const CircleAvatar(
-                    radius: 32,
+                    radius: 36,
                     backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 38, color: Colors.grey),
+                    child: Icon(Icons.person, size: 40, color: Colors.grey),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,16 +85,17 @@ class CustomDrawer extends StatelessWidget {
                         'Welcome Back!',
                         style: GoogleFonts.poppins(
                           color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w500,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         userRole,
                         style: GoogleFonts.poppins(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
                         ),
@@ -106,10 +107,12 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
           
+          const SizedBox(height: 16),
+          
           // Drawer Items
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               physics: const BouncingScrollPhysics(),
               children: [
                 _buildModernDrawerItem(
@@ -117,8 +120,9 @@ class CustomDrawer extends StatelessWidget {
                   icon: Icons.home_rounded,
                   title: 'Home',
                   onTap: () => Navigator.pop(context),
-                  color: const Color(0xFF64B5F6), // Soft Blue
+                  color: const Color(0xFF5DADE2), // Soft Blue
                 ),
+                const SizedBox(height: 8),
                 _buildModernDrawerItem(
                   context: context,
                   icon: Icons.person_rounded,
@@ -130,8 +134,9 @@ class CustomDrawer extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const ProfileScreen()),
                     );
                   },
-                  color: const Color(0xFFBA68C8), // Soft Purple
+                  color: const Color(0xFFA569BD), // Soft Purple
                 ),
+                const SizedBox(height: 8),
                 _buildModernDrawerItem(
                   context: context,
                   icon: Icons.settings_rounded,
@@ -143,10 +148,10 @@ class CustomDrawer extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const SettingsScreen()),
                     );
                   },
-                  color: const Color(0xFFFFB74D), // Soft Orange
+                  color: const Color(0xFFF5B041), // Soft Orange
                 ),
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                   child: Divider(height: 1),
                 ),
                 _buildModernDrawerItem(
@@ -160,8 +165,9 @@ class CustomDrawer extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
                     );
                   },
-                  color: const Color(0xFF4DB6AC), // Soft Teal
+                  color: const Color(0xFF48C9B0), // Soft Teal
                 ),
+                const SizedBox(height: 8),
                 _buildModernDrawerItem(
                   context: context,
                   icon: Icons.info_outline_rounded,
@@ -173,7 +179,7 @@ class CustomDrawer extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const AboutScreen()),
                     );
                   },
-                  color: const Color(0xFF7986CB), // Soft Indigo
+                  color: const Color(0xFF9FA8DA), // Soft Indigo
                 ),
               ],
             ),
@@ -181,30 +187,32 @@ class CustomDrawer extends StatelessWidget {
           
           // Bottom Actions
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
             child: InkWell(
               onTap: onLogout,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 18),
                 decoration: BoxDecoration(
-                  color: Color(AppConfig.errorColor).withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Color(AppConfig.errorColor).withOpacity(0.1),
-                  ),
+                  color: isDark ? const Color(0xFF3B1A1A) : const Color(0xFFFFF0F0),
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.logout_rounded, color: Color(AppConfig.errorColor), size: 22),
-                    const SizedBox(width: 10),
+                    Icon(
+                      Icons.logout_rounded, 
+                      color: isDark ? const Color(0xFFFF6B6B) : const Color(0xFFE53935), 
+                      size: 24
+                    ),
+                    const SizedBox(width: 12),
                     Text(
                       'Logout',
                       style: GoogleFonts.poppins(
-                        color: Color(AppConfig.errorColor),
+                        color: isDark ? const Color(0xFFFF6B6B) : const Color(0xFFE53935),
                         fontWeight: FontWeight.w600,
-                        fontSize: 16,
+                        fontSize: 18,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
@@ -226,60 +234,49 @@ class CustomDrawer extends StatelessWidget {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          splashColor: color.withOpacity(0.1),
-          highlightColor: color.withOpacity(0.05),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: isDark ? Colors.white.withOpacity(0.03) : Colors.transparent,
-              border: isDark 
-                  ? Border.all(color: Colors.white.withOpacity(0.05))
-                  : null,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(isDark ? 0.15 : 0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, color: color, size: 24),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      color: isDark ? Colors.white : const Color(0xFF2D3748),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      letterSpacing: 0.3,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        splashColor: color.withOpacity(0.1),
+        highlightColor: color.withOpacity(0.05),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(isDark ? 0.15 : 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
+                  ],
+                ),
+                child: Icon(icon, color: color, size: 26),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    color: isDark ? Colors.white : const Color(0xFF2D3748),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: isDark ? Colors.white24 : Colors.grey.shade300,
-                  size: 22,
-                ),
-              ],
-            ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: isDark ? Colors.white24 : Colors.grey.shade400,
+                size: 20,
+              ),
+            ],
           ),
         ),
       ),

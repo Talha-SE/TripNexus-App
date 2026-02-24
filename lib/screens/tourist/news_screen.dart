@@ -236,14 +236,20 @@ class _NewsScreenState extends State<NewsScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark 
+            ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+            : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+        ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -259,12 +265,13 @@ class _NewsScreenState extends State<NewsScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100],
+                    color: Colors.white.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
                   ),
-                  child: Icon(Icons.arrow_back_ios_new_rounded, 
+                  child: const Icon(Icons.arrow_back_ios_new_rounded, 
                     size: 18, 
-                    color: isDark ? Colors.white : Colors.black87
+                    color: Colors.white
                   ),
                 ),
               ),
@@ -277,7 +284,7 @@ class _NewsScreenState extends State<NewsScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      color: Colors.white,
                     ),
                   ),
                   Text(
@@ -285,7 +292,7 @@ class _NewsScreenState extends State<NewsScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Colors.grey,
+                      color: Colors.white.withOpacity(0.8),
                     ),
                   ),
                 ],
@@ -295,21 +302,21 @@ class _NewsScreenState extends State<NewsScreen> {
           const SizedBox(height: 24),
           Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+              color: Colors.white.withOpacity(0.15),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.1) : Colors.transparent,
+                color: Colors.white.withOpacity(0.2),
               ),
             ),
             child: TextField(
               controller: _searchController,
-              style: GoogleFonts.poppins(color: isDark ? Colors.white : Colors.black87),
+              style: GoogleFonts.poppins(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Search city (e.g., Paris, Tokyo)...',
-                hintStyle: GoogleFonts.poppins(color: Colors.grey, fontSize: 14),
-                prefixIcon: const Icon(Icons.search_rounded, color: Colors.grey),
+                hintStyle: GoogleFonts.poppins(color: Colors.white.withOpacity(0.6), fontSize: 14),
+                prefixIcon: Icon(Icons.search_rounded, color: Colors.white.withOpacity(0.8)),
                 suffixIcon: IconButton(
-                  icon: Icon(Icons.send_rounded, color: Color(AppConfig.primaryColor)),
+                  icon: const Icon(Icons.send_rounded, color: Colors.white),
                   onPressed: () {
                     FocusScope.of(context).unfocus();
                     _fetchNews(_searchController.text);

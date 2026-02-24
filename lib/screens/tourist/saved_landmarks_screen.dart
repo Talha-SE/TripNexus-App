@@ -217,24 +217,61 @@ class _SavedLandmarksScreenState extends State<SavedLandmarksScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Saved Landmarks'),
+        title: Text(
+          'Saved Landmarks',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(AppConfig.primaryColor)),
+              ),
+            )
           : _savedLandmarks.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.bookmark_border, size: 80, color: Colors.grey.shade400),
+                      Icon(Icons.bookmark_border_rounded, size: 80, color: isDark ? Colors.white24 : Colors.grey.shade400),
                       const SizedBox(height: 16),
                       Text(
                         'No saved landmarks',
                         style: GoogleFonts.poppins(
                           fontSize: 18,
-                          color: Colors.grey.shade600,
+                          color: isDark ? Colors.white60 : Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -242,24 +279,28 @@ class _SavedLandmarksScreenState extends State<SavedLandmarksScreen> {
                         'Scan landmarks and save them here',
                         style: GoogleFonts.poppins(
                           fontSize: 14,
-                          color: Colors.grey.shade500,
+                          color: isDark ? Colors.white38 : Colors.grey.shade500,
                         ),
                       ),
                     ],
                   ),
                 )
-              : RefreshIndicator(
-                  onRefresh: _loadSavedLandmarks,
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.75,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemCount: _savedLandmarks.length,
-                    itemBuilder: (context, index) {
+              : Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  ),
+                  child: RefreshIndicator(
+                    onRefresh: _loadSavedLandmarks,
+                    child: GridView.builder(
+                      padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 80, 16, 16),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: _savedLandmarks.length,
+                      itemBuilder: (context, index) {
                       final landmark = _savedLandmarks[index];
                       return GestureDetector(
                         onTap: () => _showLandmarkDetails(landmark),
@@ -316,6 +357,7 @@ class _SavedLandmarksScreenState extends State<SavedLandmarksScreen> {
                     },
                   ),
                 ),
+      ),
     );
   }
 }

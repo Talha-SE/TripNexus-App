@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/app_config.dart';
 import '../../utils/app_theme.dart';
-import 'notification_settings_screen.dart';
 import 'privacy_security_screen.dart';
+import 'two_factor_auth_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -95,6 +95,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const PrivacySecurityScreen(),
+                ),
+              );
+            },
+          ),
+          _buildNavigationTile(
+            icon: Icons.security_rounded,
+            title: 'Two-Factor Authentication',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TwoFactorAuthScreen(),
                 ),
               );
             },

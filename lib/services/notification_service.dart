@@ -67,10 +67,14 @@ class NotificationService {
   }
 
   Future<void> _requestPermissions() async {
-    await _notifications
+    print('🔐 Requesting notification permissions...');
+    
+    final androidImplementation = _notifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+            AndroidFlutterLocalNotificationsPlugin>();
+            
+    final bool? granted = await androidImplementation?.requestNotificationsPermission();
+    print('🤖 Android notification permission: ${granted == true ? "GRANTED" : "DENIED"}');
 
     await _notifications
         .resolvePlatformSpecificImplementation<
@@ -130,21 +134,26 @@ class NotificationService {
   }
 
   Future<void> _showSystemNotification(AppNotification notification) async {
+    print('🔔 Showing system notification: ${notification.title}');
+    
     final androidDetails = AndroidNotificationDetails(
-      notification.type.name,
-      notification.type.name.toUpperCase(),
-      channelDescription: 'Notifications for ${notification.type.name}',
+      'trip_nexus_channel_${notification.type.name}', // Unique channel ID
+      'TripNexus ${notification.type.name.toUpperCase()}', // Channel name
+      channelDescription: 'Notifications for ${notification.type.name} in TripNexus',
       importance: Importance.max,
-      priority: Priority.max,
-      category: AndroidNotificationCategory.message,
-      visibility: NotificationVisibility.public,
+      priority: Priority.high,
+      ticker: 'ticker',
       styleInformation: BigTextStyleInformation(notification.body),
       icon: _getIconForType(notification.type),
-      color: Color(0xFF2196F3), // Primary brand color
-      ledColor: Color(0xFF2196F3),
+      color: const Color(0xFF2196F3),
+      ledColor: const Color(0xFF2196F3),
+      ledOnMs: 1000,
+      ledOffMs: 500,
       enableLights: true,
       enableVibration: true,
       playSound: true,
+      showWhen: true,
+      category: AndroidNotificationCategory.status,
     );
 
     const iosDetails = DarwinNotificationDetails(
@@ -159,28 +168,23 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    await _notifications.show(
-      notification.id.hashCode,
-      notification.title,
-      notification.body,
-      details,
-      payload: jsonEncode(notification.toJson()),
-    );
+    try {
+      await _notifications.show(
+        notification.id.hashCode,
+        notification.title,
+        notification.body,
+        details,
+        payload: jsonEncode(notification.toJson()),
+      );
+      print('✅ System notification delivered successfully');
+    } catch (e) {
+      print('❌ Error showing system notification: $e');
+    }
   }
 
   String _getIconForType(NotificationType type) {
-    switch (type) {
-      case NotificationType.weather:
-        return '@drawable/ic_weather';
-      case NotificationType.news:
-        return '@drawable/ic_news';
-      case NotificationType.trip:
-        return '@drawable/ic_trip';
-      case NotificationType.advisor:
-        return '@drawable/ic_advisor';
-      default:
-        return '@mipmap/ic_launcher';
-    }
+    // Standardize on ic_launcher for reliability unless drawables are verified
+    return '@mipmap/ic_launcher';
   }
 
   Future<void> _saveNotifications() async {

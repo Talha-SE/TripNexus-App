@@ -399,12 +399,31 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
       appBar: AppBar(
         title: Text(
           'Weather Forecast',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
         ),
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           if (_savedCities.isNotEmpty && _weatherData != null)
             IconButton(
@@ -1234,7 +1253,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.12),
               borderRadius: BorderRadius.circular(28),
@@ -1257,7 +1276,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                                 child: Text(
                                   _selectedCity?.name ?? 'Select City',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 24,
+                                    fontSize: 22, // Slightly reduced to fit longer names safely
                                     fontWeight: FontWeight.w700,
                                     color: Colors.white,
                                     letterSpacing: -0.5,
@@ -1297,54 +1316,51 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16), // Trimmed gap safely
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Flexible(
-                      flex: 4,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          icon,
-                          style: const TextStyle(fontSize: 64, height: 1),
-                        ),
+                    // Larger weather emoji icon
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      child: Text(
+                        icon,
+                        style: const TextStyle(fontSize: 84, height: 1), // Maximized visual hierarchy
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
-                      flex: 5,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerRight,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '${temp?.round() ?? '--'}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 54,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    height: 0.9,
-                                  ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${temp?.round() ?? '--'}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 60, // Dialed in perfectly to avert wrap overflow
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  height: 1.1,
+                                  letterSpacing: -2,
                                 ),
-                                Text(
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0, left: 2.0),
+                                child: Text(
                                   '°',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w300,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w400,
                                     color: Colors.white,
                                     height: 1,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                           Text(
                             description,
@@ -1357,12 +1373,12 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 4),
                           Text(
                             'Feels like ${feelsLike?.round() ?? '--'}°',
                             textAlign: TextAlign.right,
                             style: GoogleFonts.poppins(
-                              fontSize: 12,
+                              fontSize: 13,
                               color: Colors.white.withOpacity(0.8),
                               fontWeight: FontWeight.w500,
                             ),
@@ -1377,7 +1393,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), // Tightened inner advice box slightly
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),

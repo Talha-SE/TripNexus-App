@@ -204,25 +204,32 @@ class _NotificationPanelScreenState extends State<NotificationPanelScreen> {
           ),
         );
       },
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        elevation: 0,
-        color: notification.isRead
-            ? (isDark ? const Color(0xFF1E293B) : Colors.grey.shade50)
-            : (isDark
-                ? const Color(0xFF334155)
-                : theme.colorScheme.primary.withOpacity(0.05)),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: notification.isRead
+              ? (isDark ? const Color(0xFF1E293B) : Colors.white)
+              : (isDark
+                  ? const Color(0xFF334155).withOpacity(0.8)
+                  : theme.colorScheme.primary.withOpacity(0.04)),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            if (!isDark)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+          ],
+          border: Border.all(
             color: notification.isRead
-                ? Colors.transparent
-                : theme.colorScheme.primary.withOpacity(0.3),
+                ? (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100)
+                : theme.colorScheme.primary.withOpacity(0.2),
             width: 1,
           ),
         ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
           onTap: () {
             setState(() {
               _notificationService.markAsRead(notification.id);
@@ -236,69 +243,89 @@ class _NotificationPanelScreenState extends State<NotificationPanelScreen> {
               children: [
                 // Icon
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 46,
+                  height: 46,
                   decoration: BoxDecoration(
-                    color: _getColorForType(notification.type).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
+                    color: _getColorForType(notification.type).withOpacity(isDark ? 0.2 : 0.1),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(
                     _getIconForType(notification.type),
                     color: _getColorForType(notification.type),
-                    size: 20,
+                    size: 24,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 // Content
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
                               notification.title,
                               style: GoogleFonts.poppins(
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: notification.isRead
                                     ? FontWeight.w500
                                     : FontWeight.w600,
-                                color: theme.textTheme.bodyLarge?.color,
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                height: 1.2,
                               ),
                             ),
                           ),
+                          const SizedBox(width: 8),
                           if (!notification.isRead)
                             Container(
                               width: 8,
                               height: 8,
-                              margin: const EdgeInsets.only(left: 8),
+                              margin: const EdgeInsets.only(top: 4),
                               decoration: BoxDecoration(
                                 color: theme.colorScheme.primary,
                                 shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: theme.colorScheme.primary.withOpacity(0.4),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
                               ),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         notification.body,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
-                          color: theme.textTheme.bodyMedium?.color
-                              ?.withOpacity(0.7),
+                          color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                          height: 1.4,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _formatTimestamp(notification.timestamp),
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          color: theme.textTheme.bodyMedium?.color
-                              ?.withOpacity(0.5),
-                        ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded, 
+                            size: 12, 
+                            color: isDark ? Colors.white38 : Colors.grey.shade400
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatTimestamp(notification.timestamp),
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? Colors.white38 : Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

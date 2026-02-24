@@ -13,8 +13,8 @@ m4zp8gXR8wPsxhNmOmjbW07kAEYAaYhR
 ```
 
 ### Models Used
-- **mistral-medium-latest**: For image analysis and quick recommendations
-- **mistral-large-latest**: For detailed trip planning with web search
+- **mistral-medium-latest**: For image analysis (vision-capable)
+- **mistral-small-latest**: For detailed trip planning and recommendations
 
 ### Endpoints
 - Base URL: `https://api.mistral.ai/v1/beta/conversations`

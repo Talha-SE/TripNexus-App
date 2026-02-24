@@ -46,10 +46,10 @@ class MistralService {
     }
   }
 
-  /// Analyze landmark image using Pixtral vision model
+  /// Analyze landmark image using Mistral Medium vision model
   Future<Map<String, dynamic>> analyzeLandmarkImage(String base64Image) async {
     try {
-      print('🔍 Analyzing landmark with Pixtral vision model...');
+      print('🔍 Analyzing landmark with Mistral Medium vision model...');
       
       final messages = [
         {
@@ -107,6 +107,12 @@ Format your response as follows:
           'success': true,
           'analysis': analysis ?? 'Unable to analyze the image. Please try again.',
         };
+      } else if (result['statusCode'] == 429) {
+        print('❌ Rate Limit Error (429)');
+        return {
+          'success': false,
+          'message': 'API Rate Limit Reached. Please wait a moment before trying again or check your Mistral AI quota.',
+        };
       } else {
         print('❌ API Error: ${result['statusCode']} - ${result['body']}');
         return {
@@ -123,7 +129,7 @@ Format your response as follows:
     }
   }
 
-  /// Generate detailed trip plan using Mistral Large model
+  /// Generate detailed trip plan using Mistral Small model
   Future<Map<String, dynamic>> generateTripPlan({
     required String destination,
     required int duration,
@@ -131,7 +137,7 @@ Format your response as follows:
     String? budget,
   }) async {
     try {
-      print('🗺️ Generating trip plan with Mistral Large...');
+      print('🗺️ Generating trip plan with Mistral Small...');
       
       final budgetInfo = budget != null && budget.isNotEmpty ? '\nBudget: $budget' : '';
       
@@ -213,6 +219,12 @@ Be specific with locations, times, and realistic costs!'''
         return {
           'success': true,
           'plan': tripPlan ?? 'Unable to generate trip plan. Please try again.',
+        };
+      } else if (result['statusCode'] == 429) {
+        print('❌ Rate Limit Error (429)');
+        return {
+          'success': false,
+          'message': 'API Rate Limit Reached. Please wait a moment before trying again or check your Mistral AI quota.',
         };
       } else {
         print('❌ API Error: ${result['statusCode']} - ${result['body']}');

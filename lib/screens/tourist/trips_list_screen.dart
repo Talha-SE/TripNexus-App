@@ -105,7 +105,10 @@ class _TripsListScreenState extends State<TripsListScreen> {
         elevation: 0,
         centerTitle: true,
         backgroundColor: Colors.transparent,
-        leading: const SizedBox(), // Hide back button if it exists/not needed or generic
+        leading: IconButton(
+          icon: const Icon(Icons.sort_rounded, color: Colors.white),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(

@@ -110,110 +110,127 @@ class _InAppNotificationOverlayState extends State<InAppNotificationOverlay>
     final isDark = theme.brightness == Brightness.dark;
     final accentColor = _getColorForType(context);
 
-    return SlideTransition(
-      position: _slideAnimation,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 50, 16, 0),
-          child: GestureDetector(
-            onTap: () {
-              widget.onTap?.call();
-              _dismiss();
-            },
-            onVerticalDragEnd: (details) {
-              if (details.primaryVelocity! < -500) {
-                _dismiss();
-              }
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+    return Material(
+      color: Colors.transparent,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 12, 16, 0),
+              child: GestureDetector(
+                onTap: () {
+                  widget.onTap?.call();
+                  _dismiss();
+                },
+                onVerticalDragUpdate: (details) {
+                  if (details.primaryDelta! < -10) {
+                    _dismiss();
+                  }
+                },
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  constraints: const BoxConstraints(maxWidth: 500),
                   decoration: BoxDecoration(
-                    color: (isDark
-                            ? const Color(0xFF1E293B)
-                            : Colors.white)
-                        .withOpacity(0.95),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: accentColor.withOpacity(0.3),
-                      width: 1.5,
-                    ),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: accentColor.withOpacity(0.2),
+                        color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
                         blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withOpacity(isDark ? 0.5 : 0.1),
-                        blurRadius: 30,
                         offset: const Offset(0, 10),
                       ),
                     ],
                   ),
-                  child: Row(
-                    children: [
-                      // Icon container
-                      Container(
-                        width: 48,
-                        height: 48,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
-                          color: accentColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
+                          color: (isDark
+                                  ? const Color(0xFF1E293B)
+                                  : Colors.white)
+                              .withOpacity(isDark ? 0.8 : 0.9),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isDark 
+                                ? Colors.white.withOpacity(0.1) 
+                                : accentColor.withOpacity(0.2),
+                            width: 1,
+                          ),
                         ),
-                        child: Icon(
-                          _getIconForType(),
-                          color: accentColor,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Content
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
+                        child: Row(
                           children: [
-                            Text(
-                              widget.notification.title,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: theme.textTheme.bodyLarge?.color,
+                            // Icon container
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: accentColor.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              child: Icon(
+                                _getIconForType(),
+                                color: accentColor,
+                                size: 22,
+                              ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.notification.body,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                color: theme.textTheme.bodyMedium?.color
-                                    ?.withOpacity(0.7),
+                            const SizedBox(width: 14),
+                            // Content
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    widget.notification.title,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    widget.notification.body,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark 
+                                          ? Colors.white.withOpacity(0.6) 
+                                          : const Color(0xFF64748B),
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(width: 8),
+                            // Close button
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _dismiss,
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  child: Icon(
+                                    Icons.close_rounded, 
+                                    size: 18, 
+                                    color: isDark ? Colors.white38 : Colors.grey.shade400
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Close button
-                      IconButton(
-                        icon: const Icon(Icons.close, size: 20),
-                        onPressed: _dismiss,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 32,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),

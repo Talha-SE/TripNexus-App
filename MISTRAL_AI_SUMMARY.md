@@ -6,8 +6,8 @@
 - **API Key**: Configured with `m4zp8gXR8wPsxhNmOmjbW07kAEYAaYhR`
 - **Models**: 
   - `mistral-medium-latest` for landmark scanning (vision)
-  - `mistral-large-latest` for trip planning (advanced reasoning + web search)
-- **Conversations API**: Using the beta conversations endpoint for better context
+  - `mistral-small-latest` for trip planning (optimized for low latency)
+- **Conversations API**: Using the standard completions endpoint for better reliability
 
 ### 2. **Landmark Scanner** (Enhanced)
 **File**: [lib/screens/tourist/landmark_scanner_screen.dart](lib/screens/tourist/landmark_scanner_screen.dart)
@@ -136,29 +136,27 @@ flutter run
 ## 🎯 Models Explained
 
 ### Mistral Medium (`mistral-medium-latest`)
-**Used for**: Landmark scanning, quick recommendations
+**Used for**: Landmark scanning
 
 **Why**: 
 - Vision capability (can analyze images)
 - Fast response times
-- Good for straightforward tasks
+- Excellent balance of speed and image understanding
 - Cost-effective
 
-**Temperature**: 0.5-0.7 (balanced)  
-**Max Tokens**: 1500-2048
+**Temperature**: 0.5 (balanced)  
+**Max Tokens**: 2048
 
-### Mistral Large (`mistral-large-latest`)
-**Used for**: Trip planning
+### Mistral Small (`mistral-small-latest`)
+**Used for**: Trip planning, quick recommendations
 
 **Why**:
-- Advanced reasoning capabilities
-- Better at complex multi-step planning
-- Supports web search for current info
-- More detailed and accurate responses
+- Optimized for low latency and high throughput
+- Excellent balance of speed and reasoning
+- Cost-effective for frequent requests
 
 **Temperature**: 0.7 (creative but coherent)  
-**Max Tokens**: 4096 (longer responses)  
-**Web Search**: Enabled
+**Max Tokens**: 4096 (longer responses)
 
 ## 💡 Key Features
 

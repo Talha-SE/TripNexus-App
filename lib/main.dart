@@ -7,6 +7,7 @@ import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 import 'services/weather_notification_service.dart';
 import 'services/news_notification_service.dart';
+import 'services/mongodb_service.dart';
 import 'utils/app_theme.dart';
 
 void main() async {
@@ -66,24 +67,17 @@ class _SplashScreenState extends State<SplashScreen> {
     try {
       print('🔄 Initializing services...');
       
-      // Initialize notification services first
-      final notificationService = NotificationService.getInstance();
-      await notificationService.initialize();
-      print('✅ Notification service initialized');
+      // Parallelize service initializations to dramatically improve startup speed
+      final results = await Future.wait<dynamic>([
+        NotificationService.getInstance().initialize(),
+        WeatherNotificationService.getInstance().initialize(),
+        NewsNotificationService.getInstance().initialize(),
+        AuthService.getInstance(),
+        MongoDBService.getInstance().then((s) => s.ensureConnected(timeout: const Duration(seconds: 10))),
+      ]);
+      print('✅ All services initialized in parallel');
       
-      final weatherNotificationService = WeatherNotificationService.getInstance();
-      await weatherNotificationService.initialize();
-      print('✅ Weather notification service initialized');
-      
-      final newsNotificationService = NewsNotificationService.getInstance();
-      await newsNotificationService.initialize();
-      print('✅ News notification service initialized');
-      
-      // Start initialization immediately
-      final authServiceFuture = AuthService.getInstance();
-      
-      // Load user session
-      final authService = await authServiceFuture;
+      final authService = results[3] as AuthService;
       final isLoggedIn = await authService.loadUserSession();
       
       // Ensure splash shows for at least 1500ms for branding, but no more if ready

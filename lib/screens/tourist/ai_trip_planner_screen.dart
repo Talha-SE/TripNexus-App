@@ -133,75 +133,144 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Icon(Icons.auto_awesome, size: 24),
-            const SizedBox(width: 8),
-            const Text('AI Trip Planner'),
-          ],
+        title: Text(
+          'AI Trip Planner',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
         ),
         elevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          if (_generatedPlan != null)
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+              onPressed: () => setState(() => _generatedPlan = null),
+            ),
+        ],
       ),
-      body: _generatedPlan == null ? _buildInputForm() : _buildPlanView(),
+      body: Stack(
+        children: [
+          // Background matching the Dashboard and Landmark Scanner
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+            ),
+          ),
+          
+          _generatedPlan == null ? _buildInputForm() : _buildPlanView(),
+        ],
+      ),
     );
   }
 
   Widget _buildInputForm() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 10, 24, 24),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(height: 80), // Space for AppBar
+            // Compact Hero Section
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(AppConfig.primaryColor).withValues(alpha: 0.1),
-                    Color(AppConfig.accentColor).withValues(alpha: 0.1),
-                  ],
+                color: isDark ? const Color(0xFF1E293B).withOpacity(0.5) : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
                 ),
-                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-              child: Column(
+              child: Row(
                 children: [
-                  Icon(
-                    Icons.travel_explore,
-                    size: 64,
-                    color: Color(AppConfig.primaryColor),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'AI-Powered Trip Planning',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(AppConfig.textPrimaryColor),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tell us about your dream trip and let our AI create a detailed day-by-day itinerary for you!',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Color(AppConfig.textSecondaryColor),
+                    child: Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 32,
+                      color: primaryColor,
                     ),
-                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AI Trip Planner',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          'Let AI create your dream itinerary',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: isDark ? Colors.white60 : theme.colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
+            
+            // Input Fields with refined styling
             _buildInputField(
               controller: _destinationController,
               label: 'Where do you want to go?',
               hint: 'e.g., Paris, France',
-              icon: Icons.location_on,
+              icon: Icons.location_on_rounded,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter a destination';
@@ -214,7 +283,7 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
               controller: _durationController,
               label: 'How many days?',
               hint: 'e.g., 7',
-              icon: Icons.calendar_today,
+              icon: Icons.calendar_today_rounded,
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -231,9 +300,9 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
             _buildInputField(
               controller: _interestsController,
               label: 'What are your interests?',
-              hint: 'e.g., History, Food, Adventure, Culture',
-              icon: Icons.favorite,
-              maxLines: 2,
+              hint: 'e.g., History, Food, Adventure',
+              icon: Icons.favorite_rounded,
+              maxLines: 1,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your interests';
@@ -245,71 +314,82 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
             _buildInputField(
               controller: _budgetController,
               label: 'Budget (Optional)',
-              hint: 'e.g., \$2000, Mid-range, Luxury',
-              icon: Icons.attach_money,
+              hint: 'e.g., \$2000, Mid-range',
+              icon: Icons.payments_rounded,
             ),
             const SizedBox(height: 32),
+            
+            // Generate Button or Loading State
             _isGenerating
-                ? Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Color(AppConfig.primaryColor).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        SpinKitThreeBounce(
-                          color: Color(AppConfig.primaryColor),
-                          size: 30,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Creating your perfect itinerary...',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Color(AppConfig.primaryColor),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'This may take 10-30 seconds',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Color(AppConfig.textSecondaryColor),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
+                ? _buildGeneratingState()
                 : ElevatedButton(
                     onPressed: _generateTripPlan,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(AppConfig.primaryColor),
+                      backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      elevation: 2,
+                      elevation: 8,
+                      shadowColor: primaryColor.withOpacity(0.5),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.auto_awesome),
-                        const SizedBox(width: 8),
+                        const Icon(Icons.auto_awesome_rounded),
+                        const SizedBox(width: 12),
                         Text(
                           'Generate Trip Plan',
                           style: GoogleFonts.poppins(
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
+            const SizedBox(height: 40),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildGeneratingState() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          SpinKitThreeBounce(
+            color: theme.colorScheme.primary,
+            size: 30,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Creating your perfect itinerary...',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This may take 10-30 seconds',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: isDark ? Colors.white38 : theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -323,154 +403,172 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
       validator: validator,
+      style: GoogleFonts.poppins(
+        fontSize: 15,
+        color: isDark ? Colors.white : theme.colorScheme.onSurface,
+      ),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: GoogleFonts.poppins(
+          color: isDark ? Colors.white38 : Colors.grey.shade500,
+          fontSize: 14,
+        ),
         hintText: hint,
-        prefixIcon: Icon(icon, color: Color(AppConfig.primaryColor)),
+        hintStyle: GoogleFonts.poppins(
+          color: isDark ? Colors.white12 : Colors.grey.shade300,
+          fontSize: 14,
+        ),
+        prefixIcon: Icon(icon, color: theme.colorScheme.primary, size: 22),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(AppConfig.primaryColor), width: 2),
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
         ),
-        filled: true,
-        fillColor: Colors.grey.shade50,
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(color: Colors.red.shade400, width: 1),
+        ),
       ),
     );
   }
 
   Widget _buildPlanView() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
+
     return Column(
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 10, 24, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const SizedBox(height: 80), // Space for AppBar
+                // Success Badge
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(AppConfig.primaryColor),
-                        Color(AppConfig.accentColor),
-                      ],
-                    ),
+                    color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.check_circle, color: Colors.white, size: 32),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Trip Plan Generated!',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              _destinationController.text,
-                              style: GoogleFonts.poppins(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                      const Icon(Icons.check_circle_rounded, color: Colors.green, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Itinerary Ready',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
+                
+                // Result Card
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
+                        color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: FormattedText(
-                    text: _generatedPlan!,
-                    fontSize: 14,
-                    textColor: Color(AppConfig.textPrimaryColor),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.map_rounded, color: primaryColor, size: 24),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _destinationController.text,
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 32),
+                      FormattedText(
+                        text: _generatedPlan!,
+                        fontSize: 15,
+                        textColor: isDark ? Colors.white.withOpacity(0.7) : theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 100), // Space for bottom buttons
               ],
             ),
           ),
         ),
+        
+        // Bottom Action Bar
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF0F172A) : Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, -10),
               ),
             ],
           ),
           child: Row(
             children: [
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    setState(() {
-                      _generatedPlan = null;
-                    });
-                  },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: BorderSide(color: Color(AppConfig.primaryColor)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Create New Plan',
-                    style: GoogleFonts.poppins(
-                      color: Color(AppConfig.primaryColor),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _saveTripPlan,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(AppConfig.accentColor),
+                    backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
+                    elevation: 0,
                   ),
                   child: _isSaving
                       ? const SizedBox(
@@ -481,17 +579,31 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.save, size: 20),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Save Plan',
-                              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                            ),
-                          ],
+                      : Text(
+                          'Save Plan',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.transparent,
+                  ),
+                ),
+                child: IconButton(
+                  onPressed: () => setState(() => _generatedPlan = null),
+                  icon: Icon(
+                    Icons.add_rounded,
+                    color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                  ),
+                  padding: const EdgeInsets.all(16),
                 ),
               ),
             ],

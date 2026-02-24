@@ -150,35 +150,69 @@ class _TouristDashboardState extends State<TouristDashboard> {
     }
   }
 
+  Future<void> _refreshDashboardData() async {
+    // Show some haptic feedback for a "smart" feel if possible, or just refresh
+    try {
+      final authService = await AuthService.getInstance();
+      await authService.loadUserSession(); // Refresh user data
+      _updateUnreadCount(); // Refresh notifications
+      
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      print('Error refreshing dashboard: $e');
+    }
+  }
+
   Widget _buildHomeTab() {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionHeader('Quick Actions', null),
-                const SizedBox(height: 16),
-                _buildQuickActions(),
-                const SizedBox(height: 32),
-                _buildSectionHeader('AI-Powered Features', () {}),
-                const SizedBox(height: 16),
-                _buildAIFeatures(),
-                const SizedBox(height: 32),
-                _buildSectionHeader('Recent Trips', () {}),
-                const SizedBox(height: 16),
-                _buildRecentTrips(),
-                const SizedBox(height: 100), // Extra space for bottom nav
-              ],
-            ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+
+    return Container(
+      color: bgColor,
+      child: RefreshIndicator(
+        onRefresh: _refreshDashboardData,
+        displacement: 100, // Show below the header icons
+        color: Color(AppConfig.primaryColor),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
           ),
-        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              Container(
+                color: bgColor,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader('Quick Actions', null),
+                          const SizedBox(height: 16),
+                          _buildQuickActions(),
+                          const SizedBox(height: 32),
+                          _buildSectionHeader('AI-Powered Features', null),
+                          const SizedBox(height: 16),
+                          _buildAIFeatures(),
+                          const SizedBox(height: 32),
+                          _buildRecentTrips(),
+                          const SizedBox(height: 100), // Extra space for bottom nav
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -228,7 +262,8 @@ class _TouristDashboardState extends State<TouristDashboard> {
   }
 
   Widget _buildHeader() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final primaryColor = Color(AppConfig.primaryColor);
     
     return Container(
@@ -239,7 +274,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
           end: Alignment.bottomRight,
           colors: isDark 
             ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-            : [primaryColor, const Color(0xFF1565C0)],
+            : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
         ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(40),
@@ -247,7 +282,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
         ),
         boxShadow: [
           BoxShadow(
-            color: (isDark ? Colors.black : primaryColor).withOpacity(0.3),
+            color: (isDark ? Colors.black : primaryColor).withOpacity(0.2),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -266,13 +301,6 @@ class _TouristDashboardState extends State<TouristDashboard> {
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.05),
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.05),
-                    blurRadius: 50,
-                    spreadRadius: 10,
-                  ),
-                ],
               ),
             ),
           ),
@@ -292,47 +320,44 @@ class _TouristDashboardState extends State<TouristDashboard> {
                         icon: Icons.sort_rounded,
                         onTap: () => _scaffoldKey.currentState?.openDrawer(),
                       ),
-                      Stack(
-                        clipBehavior: Clip.none,
+                      Row(
                         children: [
-                          _buildHeaderIconButton(
-                            icon: Icons.notifications_none_rounded,
-                            onTap: _navigateToNotifications,
-                          ),
-                          if (_unreadCount > 0)
-                            Positioned(
-                              top: -2,
-                              right: -2,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: isDark ? const Color(0xFF1E293B) : primaryColor, width: 2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                constraints: const BoxConstraints(
-                                  minWidth: 18,
-                                  minHeight: 18,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '$_unreadCount',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              _buildHeaderIconButton(
+                                icon: Icons.notifications_none_rounded,
+                                onTap: _navigateToNotifications,
+                              ),
+                              if (_unreadCount > 0)
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: Colors.redAccent,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: isDark ? const Color(0xFF1E293B) : Color(AppConfig.primaryColor), width: 2),
                                     ),
                                   ),
                                 ),
-                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white.withOpacity(0.2)),
                             ),
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.white.withOpacity(0.2),
+                              child: const Icon(Icons.person_rounded, color: Colors.white, size: 24),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -340,59 +365,54 @@ class _TouristDashboardState extends State<TouristDashboard> {
                   const SizedBox(height: 32),
                   
                   // Welcome Text
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Hello, Explorer!',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                color: Colors.white.withOpacity(0.9),
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Discover Your\nDream Journey',
-                              style: GoogleFonts.outfit(
-                                fontSize: 34,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                height: 1.1,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white.withOpacity(0.5),
-                              Colors.white.withOpacity(0.1),
-                            ],
-                          ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.white.withOpacity(0.2),
-                          child: const Icon(Icons.person_rounded, color: Colors.white, size: 36),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'Hello, Explorer!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Discover Your\nDream Journey',
+                    style: GoogleFonts.outfit(
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      height: 1.1,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                   
-                  const SizedBox(height: 36),
+                  const SizedBox(height: 32),
+                  
+                  // Search Bar Placeholder (Modern Look)
+                  GestureDetector(
+                    onTap: () => _navigateToScreen(const AdvisorsSearchScreen()),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.search_rounded, color: Colors.white.withOpacity(0.8), size: 22),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Where do you want to go?',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white.withOpacity(0.6),
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -419,46 +439,30 @@ class _TouristDashboardState extends State<TouristDashboard> {
   }
 
   Widget _buildQuickActions() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B).withOpacity(0.5) : Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
-        border: Border.all(
-          color: isDark ? Colors.white.withOpacity(0.08) : Colors.grey.withOpacity(0.1),
-          width: 1.5,
-        ),
-      ),
-      child: GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 3,
-        mainAxisSpacing: 24,
-        crossAxisSpacing: 16,
-        padding: EdgeInsets.zero,
-        childAspectRatio: 0.85,
-        children: [
-          _buildQuickActionItem(Icons.auto_awesome_rounded, 'AI Planner', () => _navigateToScreen(const AITripPlannerScreen()), const Color(0xFFE3F2FD), const Color(0xFF2196F3)),
-          _buildQuickActionItem(Icons.camera_enhance_rounded, 'Scanner', () => _navigateToScreen(const LandmarkScannerScreen()), const Color(0xFFFFF3E0), const Color(0xFFFF9800)),
-          _buildQuickActionItem(Icons.cloud_outlined, 'Weather', () => _navigateToScreen(const WeatherScreen()), const Color(0xFFE8F5E9), const Color(0xFF4CAF50)),
-          _buildQuickActionItem(Icons.person_search_rounded, 'Advisors', () => _navigateToScreen(const AdvisorsSearchScreen()), const Color(0xFFF3E5F5), const Color(0xFF9C27B0)),
-          _buildQuickActionItem(Icons.bookmark_border_rounded, 'Saved', () => _navigateToScreen(const SavedLandmarksScreen()), const Color(0xFFFFEBEE), const Color(0xFFF44336)),
-          _buildQuickActionItem(Icons.timeline_rounded, 'Plans', () => _navigateToScreen(const SavedTripPlansScreen()), const Color(0xFFE0F2F1), const Color(0xFF009688)),
-        ],
-      ),
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 4,
+      mainAxisSpacing: 20,
+      crossAxisSpacing: 12,
+      padding: EdgeInsets.zero,
+      childAspectRatio: 0.8,
+      children: [
+        _buildQuickActionItem(Icons.auto_awesome_rounded, 'AI Planner', () => _navigateToScreen(const AITripPlannerScreen()), const Color(0xFFE3F2FD), const Color(0xFF2196F3)),
+        _buildQuickActionItem(Icons.camera_enhance_rounded, 'Scanner', () => _navigateToScreen(const LandmarkScannerScreen()), const Color(0xFFFFF3E0), const Color(0xFFFF9800)),
+        _buildQuickActionItem(Icons.cloud_outlined, 'Weather', () => _navigateToScreen(const WeatherScreen()), const Color(0xFFE8F5E9), const Color(0xFF4CAF50)),
+        _buildQuickActionItem(Icons.person_search_rounded, 'Advisors', () => _navigateToScreen(const AdvisorsSearchScreen()), const Color(0xFFF3E5F5), const Color(0xFF9C27B0)),
+        _buildQuickActionItem(Icons.bookmark_border_rounded, 'Saved', () => _navigateToScreen(const SavedLandmarksScreen()), const Color(0xFFFFEBEE), const Color(0xFFF44336)),
+        _buildQuickActionItem(Icons.timeline_rounded, 'Plans', () => _navigateToScreen(const SavedTripPlansScreen()), const Color(0xFFE0F2F1), const Color(0xFF009688)),
+        _buildQuickActionItem(Icons.newspaper_rounded, 'News', () => _navigateToScreen(const NewsScreen()), const Color(0xFFF1F5F9), const Color(0xFF64748B)),
+        _buildQuickActionItem(Icons.settings_rounded, 'Settings', () => setState(() => _selectedIndex = 5), const Color(0xFFF1F5F9), const Color(0xFF475569)),
+      ],
     );
   }
 
   Widget _buildQuickActionItem(IconData icon, String label, VoidCallback onTap, Color bgColor, Color iconColor) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -466,29 +470,27 @@ class _TouristDashboardState extends State<TouristDashboard> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 58,
-            height: 58,
+            width: 54,
+            height: 54,
             decoration: BoxDecoration(
-              color: isDark ? iconColor.withOpacity(0.2) : bgColor,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: iconColor.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: isDark ? iconColor.withOpacity(0.15) : iconColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? iconColor.withOpacity(0.2) : iconColor.withOpacity(0.1),
+                width: 1,
+              ),
             ),
-            child: Icon(icon, color: iconColor, size: 28),
+            child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(height: 8),
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+              color: isDark ? Colors.grey.shade300 : theme.colorScheme.onSurface.withOpacity(0.8),
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -504,224 +506,213 @@ class _TouristDashboardState extends State<TouristDashboard> {
 
   Widget _buildAIFeatures() {
     return SizedBox(
-      height: 200,
+      height: 180,
       child: ListView(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 4),
         children: [
           _buildFeatureCard(
             0,
             Icons.smart_toy_rounded,
             'AI Travel Assistant',
-            'Get personalized\nrecommendations',
+            'Get personalized recommendations',
             Color(AppConfig.primaryColor),
             const Color(0xFFE3F2FD),
+            () => _navigateToScreen(const AITripPlannerScreen()),
           ),
           const SizedBox(width: 16),
           _buildFeatureCard(
             1,
             Icons.eco_rounded,
             'Eco-Friendly',
-            'Sustainable travel\nchoices for you',
-            const Color(0xFF4CAF50),
-            const Color(0xFFE8F5E9),
+            'Sustainable travel choices for you',
+            const Color(0xFF10B981),
+            const Color(0xFFECFDF5),
+            () {},
           ),
           const SizedBox(width: 16),
           _buildFeatureCard(
             2,
             Icons.event_available_rounded,
             'Local Events',
-            'Find exciting events\nat your destination',
-            const Color(0xFFFF9800),
-            const Color(0xFFFFF3E0),
+            'Find exciting events nearby',
+            const Color(0xFFF59E0B),
+            const Color(0xFFFFFBEB),
+            () {},
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureCard(int index, IconData icon, String title, String subtitle, Color color, Color bgColor) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: 260,
-      margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
+  Widget _buildFeatureCard(int index, IconData icon, String title, String subtitle, Color color, Color bgColor, VoidCallback onTap) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 280,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black.withOpacity(0.2) : color.withOpacity(0.06),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark ? color.withOpacity(0.2) : bgColor,
-                  borderRadius: BorderRadius.circular(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? color.withOpacity(0.1) : color.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: color, size: 24),
                 ),
-                child: Icon(icon, color: color, size: 24),
+                Icon(Icons.arrow_forward_rounded, size: 20, color: isDark ? Colors.white38 : color.withOpacity(0.3)),
+              ],
+            ),
+            const Spacer(),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                fontSize: 17,
+                color: isDark ? Colors.white : theme.colorScheme.onSurface,
               ),
-              CircleAvatar(
-                radius: 12,
-                backgroundColor: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade100,
-                child: Icon(Icons.arrow_forward, size: 14, color: isDark ? Colors.white : Colors.grey.shade600),
-              )
-            ],
-          ),
-          const Spacer(),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: isDark ? Colors.white60 : Colors.grey.shade500,
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: isDark ? Colors.white60 : theme.colorScheme.onSurface.withOpacity(0.6),
+                height: 1.4,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildRecentTrips() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 800),
-      tween: Tween(begin: 0.0, end: 1.0),
-      curve: Curves.easeOutQuad,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 20 * (1 - value)),
-          child: Opacity(
-            opacity: value,
-            child: child,
-          ),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(36),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.3 : 0.06),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-            ),
-          ],
-          border: Border.all(
-            color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
-            width: 1,
-          ),
-        ),
-        child: Column(
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
-                  width: 8,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.map_outlined,
-                  size: 48,
-                  color: isDark ? Colors.white54 : Colors.grey.shade400,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
             Text(
-              'No trips planned yet',
+              'Recent Trips',
               style: GoogleFonts.poppins(
-                fontSize: 22,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
-                letterSpacing: 0.5,
+                color: isDark ? Colors.white : theme.colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Your next adventure is waiting.\nStart planning your dream trip today!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                color: isDark ? Colors.white60 : Colors.grey.shade500,
-                height: 1.6,
-              ),
-            ),
-            const SizedBox(height: 36),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () => _navigateToScreen(const CreateTripScreen()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(AppConfig.primaryColor),
-                  foregroundColor: Colors.white,
-                  elevation: 10,
-                  shadowColor: Color(AppConfig.primaryColor).withOpacity(0.4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.add_location_alt_outlined),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Create New Trip',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
+            TextButton(
+              onPressed: () => setState(() => _selectedIndex = 1),
+              child: Text(
+                'View All',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(AppConfig.primaryColor),
                 ),
               ),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Color(AppConfig.primaryColor).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.map_rounded,
+                  color: Color(AppConfig.primaryColor),
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'No trips yet',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Start planning your next adventure with our AI assistant!',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: isDark ? Colors.white38 : theme.colorScheme.onSurface.withOpacity(0.4),
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _navigateToScreen(const CreateTripScreen()),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(AppConfig.primaryColor),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text('Plan a Trip'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -733,10 +724,6 @@ class _TouristDashboardState extends State<TouristDashboard> {
     return const LandmarkScannerScreen();
   }
 
-  Widget _buildAdvisorsTab() {
-    return const AdvisorsSearchScreen();
-  }
-
   Widget _buildProfileTab() {
     return const ProfileScreen();
   }
@@ -746,15 +733,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
     return Scaffold(
       key: _scaffoldKey,
       extendBody: true,
-      appBar: (_selectedIndex == 1 || _selectedIndex == 2)
-          ? AppBar(
-              title: const Text('TripNexus'),
-              leading: IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-              ),
-            )
-          : null,
+      appBar: null,
       drawer: CustomDrawer(
         userRole: 'Tourist',
         onLogout: _handleLogout,
@@ -794,41 +773,40 @@ class _TouristDashboardState extends State<TouristDashboard> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      height: 72,
-      margin: const EdgeInsets.fromLTRB(24, 0, 24, 30),
+      height: 64,
+      margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       decoration: BoxDecoration(
         color: Colors.transparent,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+            blurRadius: 40,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
-              color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.8),
-              borderRadius: BorderRadius.circular(24),
+              color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(isDark ? 0.85 : 0.9),
+              borderRadius: BorderRadius.circular(28),
               border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.4),
-                width: 1.5,
+                color: isDark ? Colors.white.withOpacity(0.08) : Colors.white.withOpacity(0.5),
+                width: 1,
               ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildNavItem(0, Icons.home_rounded, 'Home'),
-                _buildNavItem(1, Icons.explore_rounded, 'Explore'),
-                _buildNavItem(2, Icons.camera_enhance_rounded, 'Scan'),
-                _buildNavItem(3, Icons.cloud_outlined, 'Weather'),
-                _buildNavItem(4, Icons.article_outlined, 'News'),
-                _buildNavItem(5, Icons.person_outline_rounded, 'Profile'),
+                _buildNavItem(0, Icons.grid_view_rounded, Icons.grid_view_outlined, 'Home'),
+                _buildNavItem(1, Icons.explore_rounded, Icons.explore_outlined, 'Explore'),
+                _buildNavItem(2, Icons.camera_enhance_rounded, Icons.camera_enhance_outlined, 'Scan'),
+                _buildNavItem(4, Icons.article_rounded, Icons.article_outlined, 'News'),
+                _buildNavItem(5, Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
               ],
             ),
           ),
@@ -837,66 +815,55 @@ class _TouristDashboardState extends State<TouristDashboard> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = _selectedIndex == index;
+  Widget _buildNavItem(int index, IconData selectedIcon, IconData unselectedIcon, String label) {
     final theme = Theme.of(context);
+    final isSelected = _selectedIndex == index;
     final isDark = theme.brightness == Brightness.dark;
-    
+    final primaryColor = Color(AppConfig.primaryColor);
+
     return Expanded(
-      child: Tooltip(
-        message: label,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            if (_selectedIndex != index) {
-              HapticFeedback.lightImpact();
-              setState(() => _selectedIndex = index);
-            }
-          },
-          child: SizedBox(
-            height: double.infinity,
-            child: TweenAnimationBuilder<double>(
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _selectedIndex = index);
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              tween: Tween(begin: 0.0, end: isSelected ? 1.0 : 0.0),
-              builder: (context, value, child) {
-                return Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Active Background Glow
-                    Transform.scale(
-                      scale: value,
-                      child: Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.colorScheme.primary.withOpacity(0.4),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Icon with Color Transition
-                    Icon(
-                      icon,
-                      size: 24,
-                      color: Color.lerp(
-                        isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                        theme.colorScheme.onPrimary,
-                        value,
-                      ),
-                    ),
-                  ],
-                );
-              },
+              curve: Curves.easeOutQuart,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected 
+                    ? primaryColor.withOpacity(isDark ? 0.2 : 0.1) 
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  isSelected ? selectedIcon : unselectedIcon,
+                  key: ValueKey<bool>(isSelected),
+                  color: isSelected 
+                      ? primaryColor 
+                      : (isDark ? Colors.white38 : const Color(0xFF64748B)), // Slate 500 for modern look in light mode
+                  size: 22,
+                ),
+              ),
             ),
-          ),
+            if (isSelected)
+              Container(
+                margin: const EdgeInsets.only(top: 2),
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+          ],
         ),
       ),
     );

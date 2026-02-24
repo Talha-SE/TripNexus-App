@@ -149,40 +149,49 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          'Explore Landmarks',
-          style: GoogleFonts.outfit(
+          'Explore',
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            fontSize: 20,
             color: Colors.white,
-            letterSpacing: -0.5,
           ),
         ),
         elevation: 0,
         centerTitle: true,
         backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.sort_rounded, color: Colors.white),
+          onPressed: () => Scaffold.of(context).openDrawer(),
         ),
       ),
       body: Stack(
         children: [
-          // Background Gradient
+          // Background Gradient matching Dashboard
           Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : Colors.white,
-              gradient: isDark 
-                ? const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                  )
-                : null,
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
             ),
           ),
           
@@ -193,12 +202,15 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
                 _buildImageSection(),
                 
                 Transform.translate(
-                  offset: const Offset(0, -20),
+                  offset: const Offset(0, -32),
                   child: Container(
                     width: double.infinity,
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height * 0.5,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
@@ -211,7 +223,7 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
                           
                           if (!_isAnalyzing && _analysisResult == null) _buildActionButtons(),
                           
-                          const SizedBox(height: 120), // Bottom padding for nav bar
+                          const SizedBox(height: 120), // Bottom padding
                         ],
                       ),
                     ),
@@ -226,20 +238,15 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
   }
 
   Widget _buildImageSection() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final primaryColor = Color(AppConfig.primaryColor);
     
     return Container(
-      height: 420,
+      height: 480,
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: isDark 
-            ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-            : [primaryColor.withOpacity(0.05), Colors.white],
-        ),
+        color: primaryColor,
       ),
       child: Stack(
         fit: StackFit.expand,
@@ -252,95 +259,81 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
               ),
             )
           else
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Animated Outer Glow
-                  Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          primaryColor.withOpacity(0.2),
-                          primaryColor.withOpacity(0),
-                        ],
-                      ),
-                    ),
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(30),
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: primaryColor.withOpacity(0.3),
-                              blurRadius: 30,
-                              spreadRadius: 5,
-                            ),
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: isDark ? Colors.white.withOpacity(0.1) : primaryColor.withOpacity(0.1),
-                            width: 2,
-                          ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark 
+                    ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                    : [primaryColor, const Color(0xFF1565C0)],
+                ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.15),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 2,
                         ),
+                      ),
+                      child: const Center(
                         child: Icon(
                           Icons.camera_enhance_rounded,
-                          size: 50,
-                          color: isDark ? Colors.white : primaryColor,
+                          size: 48,
+                          color: Colors.white,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Discover the World',
-                    style: GoogleFonts.outfit(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                      color: isDark ? Colors.white : Color(AppConfig.textPrimaryColor),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Text(
-                      'Point your camera at any landmark to learn its history and secrets',
-                      textAlign: TextAlign.center,
+                    const SizedBox(height: 24),
+                    Text(
+                      'Landmark Scanner',
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        height: 1.5,
-                        color: isDark ? Colors.white60 : Color(AppConfig.textSecondaryColor),
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 48),
+                      child: Text(
+                        'Snap a photo to uncover history and local secrets',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          color: Colors.white.withOpacity(0.8),
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             
-          // Bottom transition gradient
+          // Enhanced bottom transition gradient
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            height: 80,
+            height: 120,
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    (isDark ? const Color(0xFF0F172A) : Colors.white).withOpacity(0),
-                    isDark ? const Color(0xFF0F172A) : Colors.white,
+                    (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)).withOpacity(0),
+                    (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)).withOpacity(0.6),
+                    isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                   ],
                 ),
               ),
@@ -352,38 +345,37 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
   }
 
   Widget _buildActionButtons() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Text(
-            'Start Exploring',
-            style: GoogleFonts.outfit(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Color(AppConfig.textPrimaryColor),
-            ),
+        Text(
+          'Capture Landmark',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : theme.colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         Row(
           children: [
             Expanded(
               child: _buildActionButton(
-                icon: Icons.camera_enhance_rounded,
-                label: 'Take Photo',
-                color: const Color(0xFF2196F3),
+                icon: Icons.camera_rounded,
+                label: 'Camera',
+                color: theme.colorScheme.primary,
                 onTap: () => _pickImage(ImageSource.camera),
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: _buildActionButton(
-                icon: Icons.photo_library_rounded,
+                icon: Icons.image_rounded,
                 label: 'Gallery',
-                color: const Color(0xFFFF9800),
+                color: const Color(0xFF6366F1),
                 onTap: () => _pickImage(ImageSource.gallery),
               ),
             ),
@@ -399,15 +391,21 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
+        ),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.15),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
             blurRadius: 20,
-            offset: const Offset(0, 10),
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -415,17 +413,9 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(28),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B).withOpacity(0.7) : Colors.white,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.08) : color.withOpacity(0.1),
-                width: 1.5,
-              ),
-            ),
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
             child: Column(
               children: [
                 Container(
@@ -433,23 +423,16 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.2),
-                        blurRadius: 15,
-                        spreadRadius: 2,
-                      ),
-                    ],
                   ),
-                  child: Icon(icon, color: color, size: 32),
+                  child: Icon(icon, color: color, size: 28),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 Text(
                   label,
-                  style: GoogleFonts.outfit(
-                    fontSize: 17,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Color(AppConfig.textPrimaryColor),
+                    color: isDark ? Colors.white : theme.colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -461,46 +444,44 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
   }
 
   Widget _buildAnalyzingState() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Column(
           children: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 4,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(AppConfig.primaryColor),
-                    ),
-                  ),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                 ),
-                Icon(
-                  Icons.auto_awesome,
-                  size: 30,
-                  color: Color(AppConfig.primaryColor),
-                ),
-              ],
+              ),
             ),
             const SizedBox(height: 24),
             Text(
-              'Analyzing Image...',
-              style: GoogleFonts.outfit(
-                fontSize: 20,
+              'Identifying Landmark...',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Color(AppConfig.textPrimaryColor),
+                color: isDark ? Colors.white : theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Identifying landmarks and history',
+              'Analyzing details with AI Assistant',
               style: GoogleFonts.poppins(
                 fontSize: 14,
-                color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Color(AppConfig.textSecondaryColor),
+                color: isDark ? Colors.white38 : theme.colorScheme.onSurface.withOpacity(0.5),
               ),
             ),
           ],
@@ -510,30 +491,30 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
   }
 
   Widget _buildResultSection() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = Color(AppConfig.primaryColor);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFF4CAF50).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.2)),
+            color: Colors.green.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.verified_rounded, color: Color(0xFF4CAF50), size: 20),
+              const Icon(Icons.check_circle_rounded, color: Colors.green, size: 16),
               const SizedBox(width: 8),
               Text(
-                'Landmark Identified',
-                style: GoogleFonts.outfit(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF4CAF50),
+                'Identified',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
                 ),
               ),
             ],
@@ -544,17 +525,16 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B).withOpacity(0.5) : Colors.white,
-            borderRadius: BorderRadius.circular(32),
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: isDark ? Colors.white.withOpacity(0.08) : Colors.grey.withOpacity(0.1),
-              width: 1.5,
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -562,18 +542,18 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Insights',
-                style: GoogleFonts.outfit(
-                  fontSize: 20,
+                'History & Details',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Color(AppConfig.textPrimaryColor),
+                  color: isDark ? Colors.white : theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 16),
               FormattedText(
                 text: _analysisResult!,
-                fontSize: 16,
-                textColor: isDark ? Colors.white.withOpacity(0.9) : Color(AppConfig.textPrimaryColor),
+                fontSize: 15,
+                textColor: isDark ? Colors.white.withOpacity(0.7) : theme.colorScheme.onSurface.withOpacity(0.7),
               ),
             ],
           ),
@@ -582,66 +562,42 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
         Row(
           children: [
             Expanded(
-              child: Container(
-                height: 60,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: [primaryColor, const Color(0xFF1565C0)],
+              child: ElevatedButton(
+                onPressed: _isSaving ? null : _saveLandmark,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: primaryColor.withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+                  elevation: 0,
                 ),
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _saveLandmark,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: _isSaving
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.bookmark_add_rounded, color: Colors.white),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Save to Collection',
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
                         ),
-                ),
+                      )
+                    : Text(
+                        'Save to Collection',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Container(
-              height: 60,
-              width: 60,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(20),
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isDark ? Colors.white.withOpacity(0.1) : Colors.transparent,
+                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
                 ),
               ),
               child: IconButton(
@@ -651,8 +607,11 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
                     _analysisResult = null;
                   });
                 },
-                icon: const Icon(Icons.refresh_rounded),
-                color: isDark ? Colors.white70 : Colors.grey.shade700,
+                icon: Icon(
+                  Icons.refresh_rounded,
+                  color: isDark ? Colors.white70 : theme.colorScheme.onSurface,
+                ),
+                padding: const EdgeInsets.all(16),
               ),
             ),
           ],
