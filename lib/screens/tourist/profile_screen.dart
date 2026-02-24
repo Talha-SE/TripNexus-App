@@ -76,9 +76,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   _buildStatistics(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   _buildInfoSection(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   _buildActionButtons(),
                   const SizedBox(height: 40),
                 ],
@@ -346,7 +346,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 16),
+          padding: const EdgeInsets.only(left: 8, bottom: 12),
           child: Text(
             'Personal Information',
             style: GoogleFonts.poppins(
@@ -461,7 +461,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 16),
+          padding: const EdgeInsets.only(left: 8, bottom: 12),
           child: Text(
             'Settings',
             style: GoogleFonts.poppins(
@@ -547,23 +547,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: isDark ? actionColor.withOpacity(0.2) : actionColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: isDark ? actionColor.withOpacity(0.9) : actionColor, size: 20),
+                child: Icon(icon, color: isDark ? actionColor.withOpacity(0.9) : actionColor, size: 18),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   label,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: color ?? (isDark ? Colors.white : Color(AppConfig.textPrimaryColor)),
                   ),
@@ -571,7 +571,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               Icon(
                 Icons.chevron_right_rounded, 
-                size: 20, 
+                size: 18, 
                 color: isDark ? Colors.white24 : Colors.grey.shade400
               ),
             ],

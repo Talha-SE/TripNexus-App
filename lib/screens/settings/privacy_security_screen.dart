@@ -10,9 +10,251 @@ class PrivacySecurityScreen extends StatefulWidget {
   State<PrivacySecurityScreen> createState() => _PrivacySecurityScreenState();
 }
 
+class _TwoFASetupSheet extends StatefulWidget {
+  final VoidCallback onVerified;
+
+  const _TwoFASetupSheet({required this.onVerified});
+
+  @override
+  State<_TwoFASetupSheet> createState() => _TwoFASetupSheetState();
+}
+
+class _TwoFASetupSheetState extends State<_TwoFASetupSheet> {
+  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  bool _isVerifying = false;
+  final String _correctCode = "839241"; // Derived from TN-8392-4105
+
+  @override
+  void dispose() {
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var node in _focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  void _verifyCode() async {
+    String code = _controllers.map((c) => c.text).join();
+    if (code.length < 6) return;
+
+    setState(() => _isVerifying = true);
+    
+    // Simulate API delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (code == _correctCode) {
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onVerified();
+      }
+    } else {
+      if (mounted) {
+        setState(() => _isVerifying = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Invalid verification code. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        // Clear fields
+        for (var controller in _controllers) {
+          controller.clear();
+        }
+        _focusNodes[0].requestFocus();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Color(AppConfig.primaryColor);
+
+    return Container(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 24),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Text(
+            'Verify 2FA Setup',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Enter the 6-digit code from your authenticator app to complete setup.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 32),
+          
+          // PIN Input Fields
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(6, (index) {
+              return SizedBox(
+                width: 45,
+                child: TextField(
+                  controller: _controllers[index],
+                  focusNode: _focusNodes[index],
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  maxLength: 1,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                  ),
+                  decoration: InputDecoration(
+                    counterText: "",
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: primaryColor, width: 2),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    if (value.isNotEmpty && index < 5) {
+                      _focusNodes[index + 1].requestFocus();
+                    } else if (value.isEmpty && index > 0) {
+                      _focusNodes[index - 1].requestFocus();
+                    }
+                    if (index == 5 && value.isNotEmpty) {
+                      _verifyCode();
+                    }
+                  },
+                ),
+              );
+            }),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // QR Code Reference (Small)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.qr_code_2_rounded, color: primaryColor),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Secret Code: TN-8392-4105',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isVerifying ? null : _verifyCode,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: _isVerifying
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : Text(
+                      'Verify & Enable',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(color: Colors.grey),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
 class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   bool _showProfilePublic = true;
   bool _saveHistory = true;
+  bool _twoFactorAuth = false;
+
+  void _show2FASetupDialog() {
+    if (_twoFactorAuth) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const TwoFactorAuthScreen()),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => _TwoFASetupSheet(
+          onVerified: () {
+            setState(() => _twoFactorAuth = true);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ 2FA enabled successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,14 +333,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   icon: Icons.security_rounded,
                   title: 'Two-Factor Authentication',
                   subtitle: 'Add extra security to your account',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TwoFactorAuthScreen(),
-                      ),
-                    );
-                  },
+                  onTap: () => _show2FASetupDialog(),
                   isDark: isDark,
                 ),
                 _buildDivider(isDark),
