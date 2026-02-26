@@ -151,5 +151,19 @@ class MongoDBService {
     return _db!.collection('saved_trip_plans');
   }
 
+  DbCollection getPackageMessagesCollection() {
+    if (_db == null || !_db!.isConnected) {
+      throw Exception('Database not connected');
+    }
+    return _db!.collection('package_messages');
+  }
+
+  DbCollection getPackageBookingsCollection() {
+    if (_db == null || !_db!.isConnected) {
+      throw Exception('Database not connected');
+    }
+    return _db!.collection('package_bookings');
+  }
+
   bool get isConnected => _db != null && _db!.isConnected;
 }

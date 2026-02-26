@@ -9,12 +9,11 @@ import '../auth/welcome_screen.dart';
 import 'create_trip_screen.dart';
 import 'trips_list_screen.dart';
 import 'landmark_scanner_screen.dart';
-import 'advisors_search_screen.dart';
+import 'advisor_packages_browse_screen.dart';
 import 'weather_screen.dart';
 import 'profile_screen.dart';
 import 'ai_trip_planner_screen.dart';
 import 'saved_landmarks_screen.dart';
-import 'saved_trip_plans_screen.dart';
 import 'news_screen.dart';
 import '../common/notification_panel_screen.dart';
 import '../../services/notification_service.dart';
@@ -329,14 +328,15 @@ class _TouristDashboardState extends State<TouristDashboard> {
                                 icon: Icons.notifications_none_rounded,
                                 onTap: _navigateToNotifications,
                                 showBorder: false,
+                                showBackground: false,
                               ),
                               if (_unreadCount > 0)
                                 Positioned(
-                                  top: 8,
-                                  right: 8,
+                                  top: 10,
+                                  right: 10,
                                   child: Container(
-                                    width: 8,
-                                    height: 8,
+                                    width: 7,
+                                    height: 7,
                                     decoration: const BoxDecoration(
                                       color: Colors.redAccent,
                                       shape: BoxShape.circle,
@@ -348,17 +348,10 @@ class _TouristDashboardState extends State<TouristDashboard> {
                           const SizedBox(width: 8),
                           GestureDetector(
                             onTap: () => setState(() => _selectedIndex = 5),
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white.withOpacity(0.15)),
-                              ),
-                              child: CircleAvatar(
-                                radius: 18,
-                                backgroundColor: Colors.white.withOpacity(0.1),
-                                child: const Icon(Icons.person_rounded, color: Colors.white, size: 20),
-                              ),
+                            child: CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.white.withOpacity(0.1),
+                              child: const Icon(Icons.person_rounded, color: Colors.white, size: 20),
                             ),
                           ),
                         ],
@@ -393,7 +386,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
                   
                   // Search Bar Placeholder (Modern Look)
                   GestureDetector(
-                    onTap: () => _navigateToScreen(const AdvisorsSearchScreen()),
+                    onTap: () => _navigateToScreen(const AdvisorPackagesBrowseScreen()),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       decoration: BoxDecoration(
@@ -429,12 +422,13 @@ class _TouristDashboardState extends State<TouristDashboard> {
     required IconData icon, 
     required VoidCallback onTap, 
     bool showBorder = true,
+    bool showBackground = true,
   }) {
     return Container(
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
+        color: showBackground ? Colors.white.withOpacity(0.12) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: showBorder ? Border.all(color: Colors.white.withOpacity(0.15), width: 1) : null,
       ),
@@ -444,7 +438,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Center(
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
         ),
       ),
@@ -464,9 +458,9 @@ class _TouristDashboardState extends State<TouristDashboard> {
         _buildQuickActionItem(Icons.auto_awesome_rounded, 'AI Planner', () => _navigateToScreen(const AITripPlannerScreen()), const Color(0xFFE3F2FD), const Color(0xFF2196F3)),
         _buildQuickActionItem(Icons.camera_enhance_rounded, 'Scanner', () => _navigateToScreen(const LandmarkScannerScreen()), const Color(0xFFFFF3E0), const Color(0xFFFF9800)),
         _buildQuickActionItem(Icons.cloud_outlined, 'Weather', () => _navigateToScreen(const WeatherScreen()), const Color(0xFFE8F5E9), const Color(0xFF4CAF50)),
-        _buildQuickActionItem(Icons.person_search_rounded, 'Advisors', () => _navigateToScreen(const AdvisorsSearchScreen()), const Color(0xFFF3E5F5), const Color(0xFF9C27B0)),
+        _buildQuickActionItem(Icons.person_search_rounded, 'Advisors', () => _navigateToScreen(const AdvisorPackagesBrowseScreen()), const Color(0xFFF3E5F5), const Color(0xFF9C27B0)),
         _buildQuickActionItem(Icons.bookmark_border_rounded, 'Saved', () => _navigateToScreen(const SavedLandmarksScreen()), const Color(0xFFFFEBEE), const Color(0xFFF44336)),
-        _buildQuickActionItem(Icons.timeline_rounded, 'Plans', () => _navigateToScreen(const SavedTripPlansScreen()), const Color(0xFFE0F2F1), const Color(0xFF009688)),
+        _buildQuickActionItem(Icons.timeline_rounded, 'Plans', () => setState(() => _selectedIndex = 1), const Color(0xFFE0F2F1), const Color(0xFF009688)),
         _buildQuickActionItem(Icons.newspaper_rounded, 'News', () => _navigateToScreen(const NewsScreen()), const Color(0xFFF1F5F9), const Color(0xFF64748B)),
         _buildQuickActionItem(Icons.settings_rounded, 'Settings', () => setState(() => _selectedIndex = 5), const Color(0xFFF1F5F9), const Color(0xFF475569)),
       ],

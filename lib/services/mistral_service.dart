@@ -144,60 +144,77 @@ Format your response as follows:
       final messages = [
         {
           'role': 'system',
-          'content': 'You are an expert AI trip planner. Create detailed, personalized day-by-day itineraries with specific places, times, and costs.'
+          'content': '''You are an elite AI luxury travel consultant. Your goal is to create high-end, visually structured, and deeply practical trip itineraries.
+          
+Rules for formatting:
+1. Use professional and evocative language.
+2. Use Markdown headings properly (# for title, ## for sections, ### for days).
+3. Use relevant emojis at the start of every heading and important point.
+4. Use **bold** for locations, times, and prices.
+5. Use bullet points for activities and lists.
+6. Group activities into Morning, Afternoon, and Evening.
+7. Include estimated costs for every major activity and meal.
+8. Add a "Pro Tip" or "Hidden Gem" for each day.
+9. Keep the tone sophisticated yet welcoming.
+10. Ensure the layout is clean with clear spacing between sections.'''
         },
         {
           'role': 'user',
-          'content': '''Create a detailed $duration-day trip plan:
+          'content': '''Create a prestigious $duration-day trip plan for:
 
 📍 Destination: $destination
 ⏱️ Duration: $duration days
 🎯 Interests: $interests$budgetInfo
 
-Format:
+Please structure the response as follows:
 
-# 🌍 Your $duration-Day Trip to $destination
+# 🌍 Your Exclusive $duration-Day Journey to $destination
 
-## 📋 Overview
-[Brief intro]
+## 📋 Trip Overview
+[A sophisticated 2-3 sentence introduction to the destination and the vibe of this trip.]
 
-## 📅 Day-by-Day Itinerary
+## 📅 The Itinerary
 
-### Day 1: [Theme]
-**Morning (9 AM - 12 PM)**
-• Activity 1 (Location, time, cost)
-• Activity 2
+### 🌅 Day 1: [Elegant Theme Name]
+**Morning (9:00 AM - 12:30 PM)**
+• 🏛️ **[Location Name]** - [Brief description]. (Time: **2.5 hours**, Cost: **\$XX**)
+• ☕ **[Cafe/Spot]** - [Why visit].
 
-**Afternoon (1 PM - 5 PM)**
-• Activity 1
-• Activity 2
+**Afternoon (1:30 PM - 5:30 PM)**
+• 🎨 **[Activity]** - [Details]. (Cost: **\$XX**)
+• 🌳 **[Park/Walk]** - [Details].
 
-**Evening (6 PM+)**
-• Dinner recommendations
-• Evening activities
+**Evening (7:00 PM+)**
+• 🍽️ **Dinner at [Restaurant Name]** - [Cuisine/Atmosphere]. (Est. Cost: **\$XX**)
+• 🌃 **[Evening Activity]** - [Details].
 
-[Continue for all $duration days]
+✨ **Hidden Gem:** [A unique, less-known spot or experience for today].
 
-## 🍽️ Food Recommendations
-• Must-try dishes
-• Best restaurants
+[Continue this exact structure for all $duration days]
 
-## 🚇 Transportation
-• Getting around
-• Costs
+## 🍽️ Culinary Highlights
+• 🥘 **Must-Try Dishes**: [List with brief descriptions]
+• 🍷 **Top Dining Spots**: [List of 3-4 varied restaurants]
 
-## 💰 Budget Estimate
-• Daily breakdown
-• Total estimate
+## 🚇 Seamless Transportation
+• 🚕 **Getting Around**: [Best ways to navigate]
+• 💳 **Travel Pass/Costs**: [Specific card names or daily estimates]
 
-## 🌱 Eco-Friendly Tips
-• Sustainable options
+## 💰 Investment Breakdown (USD)
+• 🏨 **Accommodation**: **\$XX - \$XX** per night
+• 🎟️ **Daily Activities**: **\$XX**
+• 🍽️ **Daily Dining**: **\$XX**
+• 📈 **Total Estimated Investment**: **\$XXXX**
 
-## 💡 Travel Tips
-• Local customs
-• Money-saving tips
+## 🌱 Sustainable Travel
+• [3 specific eco-friendly tips for this destination]
 
-Be specific with locations, times, and realistic costs!'''
+## 💡 Expert Travel Advice
+• 🛂 **Entry & Customs**: [Crucial local info]
+• 💵 **Money & Tipping**: [Local currency and etiquette]
+• 📱 **Connectivity**: [SIM/eSIM advice]
+
+Be extremely specific with names of restaurants, museums, and streets!'''
         }
       ];
 

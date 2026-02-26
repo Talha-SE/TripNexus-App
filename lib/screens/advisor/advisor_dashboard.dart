@@ -4,6 +4,10 @@ import '../../config/app_config.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_drawer.dart';
 import '../auth/welcome_screen.dart';
+import 'create_package_screen.dart';
+import 'advisor_packages_screen.dart';
+import 'advisor_profile_screen.dart';
+import 'advisor_messages_screen.dart';
 
 class AdvisorDashboard extends StatefulWidget {
   const AdvisorDashboard({Key? key}) : super(key: key);
@@ -40,6 +44,8 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
       case 3:
         return _buildAnalyticsTab();
       case 4:
+        return _buildMessagesTab();
+      case 5:
         return _buildProfileTab();
       default:
         return _buildHomeTab();
@@ -144,21 +150,32 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
           Icons.add_box,
           'Create Package',
           'Add new travel packages',
-          () {},
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CreatePackageScreen(),
+              ),
+            );
+          },
         ),
         const SizedBox(height: 12),
         _buildActionCard(
-          Icons.calendar_today,
-          'Manage Schedule',
-          'View and update availability',
-          () {},
+          Icons.inventory,
+          'View All Packages',
+          'Manage your packages',
+          () {
+            setState(() => _selectedIndex = 2);
+          },
         ),
         const SizedBox(height: 12),
         _buildActionCard(
           Icons.message,
           'Messages',
           'Chat with clients',
-          () {},
+          () {
+            setState(() => _selectedIndex = 4);
+          },
         ),
       ],
     );
@@ -219,12 +236,7 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
   }
 
   Widget _buildPackagesTab() {
-    return Center(
-      child: Text(
-        'Packages Tab - Coming Soon',
-        style: GoogleFonts.poppins(fontSize: 18),
-      ),
-    );
+    return const AdvisorPackagesScreen();
   }
 
   Widget _buildAnalyticsTab() {
@@ -236,13 +248,12 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
     );
   }
 
+  Widget _buildMessagesTab() {
+    return const AdvisorMessagesScreen();
+  }
+
   Widget _buildProfileTab() {
-    return Center(
-      child: Text(
-        'Profile Tab - Coming Soon',
-        style: GoogleFonts.poppins(fontSize: 18),
-      ),
-    );
+    return const AdvisorProfileScreen();
   }
 
   @override
@@ -290,6 +301,11 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
             icon: Icon(Icons.analytics_outlined),
             selectedIcon: Icon(Icons.analytics),
             label: 'Analytics',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.chat_bubble_outline),
+            selectedIcon: Icon(Icons.chat_bubble),
+            label: 'Messages',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outlined),

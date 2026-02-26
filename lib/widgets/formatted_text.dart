@@ -17,11 +17,11 @@ class FormattedText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: _parseText(text),
+      children: _parseText(text, context),
     );
   }
 
-  List<Widget> _parseText(String text) {
+  List<Widget> _parseText(String text, BuildContext context) {
     final List<Widget> widgets = [];
     final lines = text.split('\n');
 
@@ -35,6 +35,11 @@ class FormattedText extends StatelessWidget {
       if (line.trim().startsWith('#')) {
         widgets.add(_buildMarkdownHeading(line));
         widgets.add(const SizedBox(height: 8));
+      }
+      // Check for special highlight/callout (✨, 💡, 📍, 💰)
+      else if (line.trim().startsWith('✨') || line.trim().startsWith('💡') || line.trim().startsWith('💰') || line.trim().startsWith('🌱')) {
+        widgets.add(_buildHighlightBox(line, context));
+        widgets.add(const SizedBox(height: 12));
       }
       // Check for emoji headers (🏛️, 📍, etc.)
       else if (line.contains('**') && _hasEmoji(line)) {
@@ -91,6 +96,43 @@ class FormattedText extends StatelessWidget {
     );
   }
 
+  Widget _buildHighlightBox(String line, BuildContext context) {
+    MaterialColor boxColor;
+    Color contentColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (line.contains('✨')) {
+      boxColor = Colors.amber;
+    } else if (line.contains('💡')) {
+      boxColor = Colors.blue;
+    } else if (line.contains('💰')) {
+      boxColor = Colors.green;
+    } else if (line.contains('🌱')) {
+      boxColor = Colors.teal;
+    } else {
+      boxColor = Colors.grey;
+    }
+
+    contentColor = isDark ? boxColor.shade200 : boxColor.shade900;
+    final bgColor = boxColor.withOpacity(isDark ? 0.15 : 0.08);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: boxColor.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: RichText(
+        text: _buildInlineFormattedSpan(line.trim(), contentColor),
+      ),
+    );
+  }
+
   Widget _buildHeader(String line) {
     // Extract emoji and text
     final cleaned = line.replaceAll('**', '').trim();
@@ -108,43 +150,16 @@ class FormattedText extends StatelessWidget {
     );
   }
 
-  Widget _buildBulletPoint(String line) {
-    String cleaned = line.trim();
-    
-    // Remove leading bullet characters
-    if (cleaned.startsWith('•') || cleaned.startsWith('-') || cleaned.startsWith('*')) {
-      cleaned = cleaned.substring(1).trim();
-    }
-
+  Widget _buildFormattedLine(String line) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, top: 4, bottom: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '• ',
-            style: GoogleFonts.poppins(
-              fontSize: fontSize,
-              color: textColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Expanded(
-            child: _buildInlineFormatted(cleaned),
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: RichText(
+        text: _buildInlineFormattedSpan(line, textColor),
       ),
     );
   }
 
-  Widget _buildFormattedLine(String line) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: _buildInlineFormatted(line),
-    );
-  }
-
-  Widget _buildInlineFormatted(String text) {
+  TextSpan _buildInlineFormattedSpan(String text, Color baseColor) {
     final spans = <TextSpan>[];
     int currentIndex = 0;
 
@@ -183,7 +198,7 @@ class FormattedText extends StatelessWidget {
           text: text.substring(currentIndex, formatMatch.start),
           style: GoogleFonts.poppins(
             fontSize: fontSize,
-            color: textColor,
+            color: baseColor,
           ),
         ));
       }
@@ -195,7 +210,7 @@ class FormattedText extends StatelessWidget {
           fontSize: fontSize,
           fontWeight: formatMatch.type == _FormatType.bold ? FontWeight.bold : FontWeight.normal,
           fontStyle: formatMatch.type == _FormatType.italic ? FontStyle.italic : FontStyle.normal,
-          color: textColor,
+          color: baseColor,
         ),
       ));
 
@@ -208,22 +223,51 @@ class FormattedText extends StatelessWidget {
         text: text.substring(currentIndex),
         style: GoogleFonts.poppins(
           fontSize: fontSize,
-          color: textColor,
+          color: baseColor,
         ),
       ));
     }
 
-    return RichText(
-      text: TextSpan(
-        children: spans.isEmpty ? [
-          TextSpan(
-            text: text,
+    return TextSpan(
+      children: spans.isEmpty ? [
+        TextSpan(
+          text: text,
+          style: GoogleFonts.poppins(
+            fontSize: fontSize,
+            color: baseColor,
+          ),
+        ),
+      ] : spans,
+    );
+  }
+
+  Widget _buildBulletPoint(String line) {
+    String cleaned = line.trim();
+    
+    // Remove leading bullet characters
+    if (cleaned.startsWith('•') || cleaned.startsWith('-') || cleaned.startsWith('*')) {
+      cleaned = cleaned.substring(1).trim();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, top: 4, bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '• ',
             style: GoogleFonts.poppins(
               fontSize: fontSize,
               color: textColor,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ] : spans,
+          Expanded(
+            child: RichText(
+              text: _buildInlineFormattedSpan(cleaned, textColor),
+            ),
+          ),
+        ],
       ),
     );
   }

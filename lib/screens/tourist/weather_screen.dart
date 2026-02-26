@@ -15,7 +15,7 @@ class WeatherScreen extends StatefulWidget {
   State<WeatherScreen> createState() => _WeatherScreenState();
 }
 
-class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProviderStateMixin {
+class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateMixin {
   final _searchController = TextEditingController();
   final _meteoService = OpenMeteoService.getInstance();
   final _notificationService = WeatherNotificationService.getInstance();
@@ -173,6 +173,7 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
   Future<void> _loadSavedCities() async {
     _savedCities = _notificationService.savedCities;
     if (_savedCities.isNotEmpty) {
+      _tabController?.dispose();
       _tabController = TabController(length: _savedCities.length, vsync: this);
       _tabController!.addListener(() {
         if (!_tabController!.indexIsChanging) {
@@ -467,14 +468,16 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
 
   Widget _buildModernTabBar() {
     return Container(
-      height: 44,
-      margin: const EdgeInsets.symmetric(vertical: 12),
+      height: 38,
+      margin: const EdgeInsets.only(top: 12, bottom: 8),
       child: TabBar(
         controller: _tabController,
         isScrollable: true,
+        tabAlignment: TabAlignment.start,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         physics: const BouncingScrollPhysics(),
         indicator: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(18),
           gradient: LinearGradient(
             colors: [
               Colors.white.withOpacity(0.25),
@@ -490,16 +493,16 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
             ),
           ],
         ),
-        labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+        labelPadding: const EdgeInsets.symmetric(horizontal: 6),
         dividerColor: Colors.transparent,
         tabs: _savedCities.asMap().entries.map((entry) {
           final isSelected = _tabController?.index == entry.key;
           return Tab(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(18),
                 color: isSelected ? Colors.transparent : Colors.black.withOpacity(0.1),
               ),
               child: Row(
@@ -508,21 +511,21 @@ class _WeatherScreenState extends State<WeatherScreen> with SingleTickerProvider
                   Text(
                     entry.value.name.split(',').first,
                     style: GoogleFonts.poppins(
-                      fontSize: 13, 
+                      fontSize: 12, 
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected ? Colors.white : Colors.white70,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   GestureDetector(
                     onTap: () => _removeSavedCity(entry.key),
                     child: Container(
-                      padding: const EdgeInsets.all(3),
+                      padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.15),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close_rounded, size: 12, color: Colors.white70),
+                      child: const Icon(Icons.close_rounded, size: 10, color: Colors.white70),
                     ),
                   ),
                 ],
