@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 import '../../config/app_config.dart';
 import '../../models/package_model.dart';
 import '../../models/user_model.dart';
 import '../../services/package_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/blockchain_service.dart';
+import '../../services/mongodb_service.dart';
 import 'package_chat_screen.dart';
 
 class PackageDetailsScreen extends StatefulWidget {
@@ -21,11 +25,83 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   UserModel? _advisor;
   bool _isLoading = true;
   bool _isBooking = false;
+  List<Map<String, dynamic>> _blockchainReviews = [];
+  bool _isLoadingReviews = true;
 
   @override
   void initState() {
     super.initState();
     _loadPackageDetails();
+    _loadBlockchainReviews();
+  }
+
+  Future<void> _loadBlockchainReviews() async {
+    setState(() => _isLoadingReviews = true);
+    try {
+      final mongoService = await MongoDBService.getInstance();
+      await mongoService.ensureConnected();
+      final reviewsCollection = mongoService.getBlockchainReviewsCollection();
+      final indexedDocs = await reviewsCollection.find({
+        'packageId': widget.packageId,
+      }).toList();
+
+      final indexedReviews = <Map<String, dynamic>>[];
+      for (final doc in indexedDocs) {
+        final rating = (doc['rating'] as num?)?.toInt() ?? 0;
+        if (rating < 1 || rating > 5) {
+          continue;
+        }
+
+        final rawTimestamp = doc['createdAt'] ?? doc['timestamp'];
+        DateTime timestamp;
+        if (rawTimestamp is DateTime) {
+          timestamp = rawTimestamp;
+        } else if (rawTimestamp is String) {
+          timestamp = DateTime.tryParse(rawTimestamp) ?? DateTime.now();
+        } else {
+          timestamp = DateTime.now();
+        }
+
+        indexedReviews.add({
+          'traveler': doc['traveler']?.toString() ?? '',
+          'travelerName': doc['travelerName']?.toString() ?? 'Traveler',
+          'rating': rating,
+          'comment': (doc['comment'] as String?)?.trim() ?? '',
+          'timestamp': timestamp,
+          'txHash': doc['txHash']?.toString(),
+          'source': 'indexed',
+        });
+      }
+
+      indexedReviews.sort(
+        (a, b) =>
+            (b['timestamp'] as DateTime).compareTo(a['timestamp'] as DateTime),
+      );
+
+      if (indexedReviews.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _blockchainReviews = indexedReviews;
+            _isLoadingReviews = false;
+          });
+        }
+        return;
+      }
+
+      final blockchainService = await BlockchainService.getInstance();
+      final reviews = await blockchainService.getReviews(widget.packageId);
+      if (mounted) {
+        setState(() {
+          _blockchainReviews = reviews;
+          _isLoadingReviews = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading blockchain reviews: $e');
+      if (mounted) {
+        setState(() => _isLoadingReviews = false);
+      }
+    }
   }
 
   Future<void> _loadPackageDetails() async {
@@ -33,7 +109,9 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
 
     try {
       final packageService = await PackageService.getInstance();
-      final data = await packageService.getPackageWithAdvisorInfo(widget.packageId);
+      final data = await packageService.getPackageWithAdvisorInfo(
+        widget.packageId,
+      );
 
       if (data != null && mounted) {
         setState(() {
@@ -45,9 +123,9 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading package: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading package: $e')));
       }
     }
   }
@@ -106,7 +184,9 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
       if (bookingId != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Booking successful! The advisor will contact you soon.'),
+            content: Text(
+              'Booking successful! The advisor will contact you soon.',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -209,6 +289,8 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                 _buildIncludesExcludes(),
                 const Divider(height: 32),
                 _buildItinerary(),
+                const Divider(height: 32),
+                _buildBlockchainReviews(),
                 const SizedBox(height: 100), // Space for bottom button
               ],
             ),
@@ -267,9 +349,17 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildInfoCard(Icons.access_time, '${_package!.duration}', 'Days'),
+              _buildInfoCard(
+                Icons.access_time,
+                '${_package!.duration}',
+                'Days',
+              ),
               const SizedBox(width: 12),
-              _buildInfoCard(Icons.people, '${_package!.maxTravelers}', 'Max Travelers'),
+              _buildInfoCard(
+                Icons.people,
+                '${_package!.maxTravelers}',
+                'Max Travelers',
+              ),
             ],
           ),
         ],
@@ -370,13 +460,20 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: isIndividual ? Colors.blue.withOpacity(0.1) : Colors.purple.withOpacity(0.1),
+                          color: isIndividual
+                              ? Colors.blue.withOpacity(0.1)
+                              : Colors.purple.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          isIndividual ? 'Individual Advisor' : 'Agency Advisor',
+                          isIndividual
+                              ? 'Individual Advisor'
+                              : 'Agency Advisor',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -387,11 +484,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(
-                            Icons.star,
-                            size: 18,
-                            color: Colors.amber,
-                          ),
+                          Icon(Icons.star, size: 18, color: Colors.amber),
                           const SizedBox(width: 4),
                           Text(
                             '${_advisor!.rating?.toStringAsFixed(1) ?? 'N/A'}',
@@ -486,25 +579,31 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ..._package!.includes.map((item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.check_circle, color: Colors.green, size: 20),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                item,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Color(AppConfig.textSecondaryColor),
-                                ),
+                  ..._package!.includes.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              item,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Color(AppConfig.textSecondaryColor),
                               ),
                             ),
-                          ],
-                        ),
-                      )),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -524,25 +623,27 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ..._package!.excludes.map((item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.cancel, color: Colors.red, size: 20),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                item,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Color(AppConfig.textSecondaryColor),
-                                ),
+                  ..._package!.excludes.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.cancel, color: Colors.red, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              item,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Color(AppConfig.textSecondaryColor),
                               ),
                             ),
-                          ],
-                        ),
-                      )),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -692,5 +793,253 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildBlockchainReviews() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Blockchain Reviews',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(AppConfig.textPrimaryColor),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.verified_user,
+                      size: 12,
+                      color: Colors.blue,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'SECURE',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Stored permanently on the blockchain for complete authenticity. These reviews cannot be edited or deleted by anyone.',
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              color: Colors.grey.shade500,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 20),
+          if (_isLoadingReviews)
+            const Center(child: CircularProgressIndicator())
+          else if (_blockchainReviews.isEmpty)
+            _buildNoReviewsState()
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _blockchainReviews.length,
+              itemBuilder: (context, index) {
+                final review = _blockchainReviews[index];
+                return _buildReviewItem(review);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoReviewsState() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.rate_review_outlined,
+            size: 40,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No blockchain reviews yet',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewItem(Map<String, dynamic> review) {
+    final rating = review['rating'] as int;
+    final timestamp = review['timestamp'] as DateTime;
+    final dateStr = DateFormat('MMM dd, yyyy').format(timestamp);
+    final travelerAddr = review['traveler']?.toString() ?? '';
+    final travelerName = (review['travelerName'] as String?)?.trim() ?? '';
+    final txHash = review['txHash']?.toString();
+    final shortAddr = travelerAddr.isEmpty ? '' : _shortHash(travelerAddr);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: List.generate(5, (i) {
+                  return Icon(
+                    i < rating
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    color: Colors.amber,
+                    size: 18,
+                  );
+                }),
+              ),
+              Text(
+                dateStr,
+                style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+          if (travelerName.isNotEmpty &&
+              travelerName.toLowerCase() != 'traveler') ...[
+            const SizedBox(height: 8),
+            Text(
+              travelerName,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(AppConfig.textSecondaryColor),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Text(
+            (review['comment'] as String).isEmpty
+                ? 'No comment provided.'
+                : review['comment'] as String,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Color(AppConfig.textPrimaryColor),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(
+                Icons.account_balance_wallet_outlined,
+                size: 14,
+                color: Colors.blue,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                travelerAddr.isEmpty
+                    ? 'Signed on Polygon blockchain'
+                    : 'Signed by: $shortAddr',
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  color: Colors.blue.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.lock_clock_outlined,
+                      size: 10,
+                      color: Colors.green,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'VERIFIED',
+                      style: GoogleFonts.poppins(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (txHash != null && txHash.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.link_rounded, size: 12, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(
+                  'Tx: ${_shortHash(txHash)}',
+                  style: GoogleFonts.sourceCodePro(
+                    fontSize: 10,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _shortHash(String value, {int start = 6, int end = 4}) {
+    if (value.length <= start + end) {
+      return value;
+    }
+    return '${value.substring(0, start)}...${value.substring(value.length - end)}';
   }
 }

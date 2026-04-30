@@ -17,7 +17,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   bool _promotions = false;
   bool _priceAlerts = true;
   bool _emailNotifications = true;
-  bool _smsNotifications = false;
   bool _pushNotifications = true;
   bool _weatherNotifications = true;
   bool _newsNotifications = true;
@@ -31,15 +30,29 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
+      _tripUpdates = prefs.getBool('trip_updates') ?? true;
+      _advisorMessages = prefs.getBool('advisor_messages') ?? true;
+      _bookingConfirmations = prefs.getBool('booking_confirmations') ?? true;
+      _promotions = prefs.getBool('promotions') ?? false;
+      _priceAlerts = prefs.getBool('price_alerts') ?? true;
+      _emailNotifications = prefs.getBool('email_notifications') ?? true;
       _weatherNotifications = prefs.getBool('weather_notifications') ?? true;
       _newsNotifications = prefs.getBool('news_notifications') ?? true;
       _pushNotifications = prefs.getBool('push_notifications') ?? true;
     });
   }
 
-  Future<void> _saveSetting(String key, bool value) async {
+  Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
+    await prefs.setBool('trip_updates', _tripUpdates);
+    await prefs.setBool('advisor_messages', _advisorMessages);
+    await prefs.setBool('booking_confirmations', _bookingConfirmations);
+    await prefs.setBool('promotions', _promotions);
+    await prefs.setBool('price_alerts', _priceAlerts);
+    await prefs.setBool('email_notifications', _emailNotifications);
+    await prefs.setBool('weather_notifications', _weatherNotifications);
+    await prefs.setBool('news_notifications', _newsNotifications);
+    await prefs.setBool('push_notifications', _pushNotifications);
   }
 
   @override
@@ -62,7 +75,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 value: _weatherNotifications,
                 onChanged: (value) {
                   setState(() => _weatherNotifications = value);
-                  _saveSetting('weather_notifications', value);
+                  _saveSettings();
                 },
               ),
               const Divider(),
@@ -72,7 +85,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 value: _newsNotifications,
                 onChanged: (value) {
                   setState(() => _newsNotifications = value);
-                  _saveSetting('news_notifications', value);
+                  _saveSettings();
                 },
               ),
             ],
@@ -86,21 +99,30 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 title: 'Trip Updates',
                 subtitle: 'Get notified about your trip status',
                 value: _tripUpdates,
-                onChanged: (value) => setState(() => _tripUpdates = value),
+                onChanged: (value) {
+                  setState(() => _tripUpdates = value);
+                  _saveSettings();
+                },
               ),
               const Divider(),
               _buildSwitchTile(
                 title: 'Booking Confirmations',
                 subtitle: 'Receive booking confirmations',
                 value: _bookingConfirmations,
-                onChanged: (value) => setState(() => _bookingConfirmations = value),
+                onChanged: (value) {
+                  setState(() => _bookingConfirmations = value);
+                  _saveSettings();
+                },
               ),
               const Divider(),
               _buildSwitchTile(
                 title: 'Price Alerts',
                 subtitle: 'Get notified when prices drop',
                 value: _priceAlerts,
-                onChanged: (value) => setState(() => _priceAlerts = value),
+                onChanged: (value) {
+                  setState(() => _priceAlerts = value);
+                  _saveSettings();
+                },
               ),
             ],
           ),
@@ -113,7 +135,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 title: 'Advisor Messages',
                 subtitle: 'Get notified when advisors message you',
                 value: _advisorMessages,
-                onChanged: (value) => setState(() => _advisorMessages = value),
+                onChanged: (value) {
+                  setState(() => _advisorMessages = value);
+                  _saveSettings();
+                },
               ),
             ],
           ),
@@ -126,7 +151,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 title: 'Promotions & Offers',
                 subtitle: 'Receive special deals and promotions',
                 value: _promotions,
-                onChanged: (value) => setState(() => _promotions = value),
+                onChanged: (value) {
+                  setState(() => _promotions = value);
+                  _saveSettings();
+                },
               ),
             ],
           ),
@@ -139,21 +167,20 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 title: 'Push Notifications',
                 subtitle: 'Receive notifications on this device',
                 value: _pushNotifications,
-                onChanged: (value) => setState(() => _pushNotifications = value),
+                onChanged: (value) {
+                  setState(() => _pushNotifications = value);
+                  _saveSettings();
+                },
               ),
               const Divider(),
               _buildSwitchTile(
                 title: 'Email Notifications',
                 subtitle: 'Receive notifications via email',
                 value: _emailNotifications,
-                onChanged: (value) => setState(() => _emailNotifications = value),
-              ),
-              const Divider(),
-              _buildSwitchTile(
-                title: 'SMS Notifications',
-                subtitle: 'Receive notifications via SMS',
-                value: _smsNotifications,
-                onChanged: (value) => setState(() => _smsNotifications = value),
+                onChanged: (value) {
+                  setState(() => _emailNotifications = value);
+                  _saveSettings();
+                },
               ),
             ],
           ),
@@ -192,19 +219,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          OutlinedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Test notification sent!')),
-              );
-            },
-            icon: const Icon(Icons.send),
-            label: const Text('Send Test Notification'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),
         ],

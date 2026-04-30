@@ -14,6 +14,7 @@ import 'weather_screen.dart';
 import 'profile_screen.dart';
 import 'ai_trip_planner_screen.dart';
 import 'saved_landmarks_screen.dart';
+import 'my_bookings_screen.dart';
 import 'news_screen.dart';
 import '../common/notification_panel_screen.dart';
 import '../../services/notification_service.dart';
@@ -77,9 +78,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
   void _navigateToNotifications() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const NotificationPanelScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const NotificationPanelScreen()),
     ).then((_) => _updateUnreadCount());
   }
 
@@ -92,9 +91,9 @@ class _TouristDashboardState extends State<TouristDashboard> {
   Future<void> _handleLogout() async {
     final authService = await AuthService.getInstance();
     await authService.logout();
-    
+
     if (!mounted) return;
-    
+
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const WelcomeScreen()),
@@ -112,13 +111,9 @@ class _TouristDashboardState extends State<TouristDashboard> {
         return FadeTransition(
           opacity: animation,
           child: ScaleTransition(
-            scale: Tween<double>(
-              begin: 0.95,
-              end: 1.0,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutQuart,
-            )),
+            scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutQuart),
+            ),
             child: child,
           ),
         );
@@ -155,7 +150,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
       final authService = await AuthService.getInstance();
       await authService.loadUserSession(); // Refresh user data
       _updateUnreadCount(); // Refresh notifications
-      
+
       if (mounted) {
         setState(() {});
       }
@@ -202,7 +197,9 @@ class _TouristDashboardState extends State<TouristDashboard> {
                           _buildAIFeatures(),
                           const SizedBox(height: 32),
                           _buildRecentTrips(),
-                          const SizedBox(height: 100), // Extra space for bottom nav
+                          const SizedBox(
+                            height: 100,
+                          ), // Extra space for bottom nav
                         ],
                       ),
                     ),
@@ -264,16 +261,16 @@ class _TouristDashboardState extends State<TouristDashboard> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primaryColor = Color(AppConfig.primaryColor);
-    
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark 
-            ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-            : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+          colors: isDark
+              ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+              : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
         ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(40),
@@ -303,7 +300,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
               ),
             ),
           ),
-          
+
           SafeArea(
             bottom: false,
             child: Padding(
@@ -351,7 +348,11 @@ class _TouristDashboardState extends State<TouristDashboard> {
                             child: CircleAvatar(
                               radius: 18,
                               backgroundColor: Colors.white.withOpacity(0.1),
-                              child: const Icon(Icons.person_rounded, color: Colors.white, size: 20),
+                              child: const Icon(
+                                Icons.person_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ],
@@ -359,7 +360,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
                     ],
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Welcome Text
                   Text(
                     'Hello, Explorer!',
@@ -381,22 +382,33 @@ class _TouristDashboardState extends State<TouristDashboard> {
                       letterSpacing: -0.5,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   // Search Bar Placeholder (Modern Look)
                   GestureDetector(
-                    onTap: () => _navigateToScreen(const AdvisorPackagesBrowseScreen()),
+                    onTap: () =>
+                        _navigateToScreen(const AdvisorPackagesBrowseScreen()),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.search_rounded, color: Colors.white.withOpacity(0.8), size: 22),
+                          Icon(
+                            Icons.search_rounded,
+                            color: Colors.white.withOpacity(0.8),
+                            size: 22,
+                          ),
                           const SizedBox(width: 12),
                           Text(
                             'Where do you want to go?',
@@ -419,8 +431,8 @@ class _TouristDashboardState extends State<TouristDashboard> {
   }
 
   Widget _buildHeaderIconButton({
-    required IconData icon, 
-    required VoidCallback onTap, 
+    required IconData icon,
+    required VoidCallback onTap,
     bool showBorder = true,
     bool showBackground = true,
   }) {
@@ -428,18 +440,20 @@ class _TouristDashboardState extends State<TouristDashboard> {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: showBackground ? Colors.white.withOpacity(0.12) : Colors.transparent,
+        color: showBackground
+            ? Colors.white.withOpacity(0.12)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        border: showBorder ? Border.all(color: Colors.white.withOpacity(0.15), width: 1) : null,
+        border: showBorder
+            ? Border.all(color: Colors.white.withOpacity(0.15), width: 1)
+            : null,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          child: Center(
-            child: Icon(icon, color: Colors.white, size: 22),
-          ),
+          child: Center(child: Icon(icon, color: Colors.white, size: 22)),
         ),
       ),
     );
@@ -455,19 +469,73 @@ class _TouristDashboardState extends State<TouristDashboard> {
       padding: EdgeInsets.zero,
       childAspectRatio: 0.8,
       children: [
-        _buildQuickActionItem(Icons.auto_awesome_rounded, 'AI Planner', () => _navigateToScreen(const AITripPlannerScreen()), const Color(0xFFE3F2FD), const Color(0xFF2196F3)),
-        _buildQuickActionItem(Icons.camera_enhance_rounded, 'Scanner', () => _navigateToScreen(const LandmarkScannerScreen()), const Color(0xFFFFF3E0), const Color(0xFFFF9800)),
-        _buildQuickActionItem(Icons.cloud_outlined, 'Weather', () => _navigateToScreen(const WeatherScreen()), const Color(0xFFE8F5E9), const Color(0xFF4CAF50)),
-        _buildQuickActionItem(Icons.person_search_rounded, 'Advisors', () => _navigateToScreen(const AdvisorPackagesBrowseScreen()), const Color(0xFFF3E5F5), const Color(0xFF9C27B0)),
-        _buildQuickActionItem(Icons.bookmark_border_rounded, 'Saved', () => _navigateToScreen(const SavedLandmarksScreen()), const Color(0xFFFFEBEE), const Color(0xFFF44336)),
-        _buildQuickActionItem(Icons.timeline_rounded, 'Plans', () => setState(() => _selectedIndex = 1), const Color(0xFFE0F2F1), const Color(0xFF009688)),
-        _buildQuickActionItem(Icons.newspaper_rounded, 'News', () => _navigateToScreen(const NewsScreen()), const Color(0xFFF1F5F9), const Color(0xFF64748B)),
-        _buildQuickActionItem(Icons.settings_rounded, 'Settings', () => setState(() => _selectedIndex = 5), const Color(0xFFF1F5F9), const Color(0xFF475569)),
+        _buildQuickActionItem(
+          Icons.auto_awesome_rounded,
+          'AI Planner',
+          () => _navigateToScreen(const AITripPlannerScreen()),
+          const Color(0xFFE3F2FD),
+          const Color(0xFF2196F3),
+        ),
+        _buildQuickActionItem(
+          Icons.camera_enhance_rounded,
+          'Scanner',
+          () => _navigateToScreen(const LandmarkScannerScreen()),
+          const Color(0xFFFFF3E0),
+          const Color(0xFFFF9800),
+        ),
+        _buildQuickActionItem(
+          Icons.cloud_outlined,
+          'Weather',
+          () => _navigateToScreen(const WeatherScreen()),
+          const Color(0xFFE8F5E9),
+          const Color(0xFF4CAF50),
+        ),
+        _buildQuickActionItem(
+          Icons.person_search_rounded,
+          'Advisors',
+          () => _navigateToScreen(const AdvisorPackagesBrowseScreen()),
+          const Color(0xFFF3E5F5),
+          const Color(0xFF9C27B0),
+        ),
+        _buildQuickActionItem(
+          Icons.receipt_long_rounded,
+          'Bookings',
+          () => _navigateToScreen(const MyBookingsScreen()),
+          const Color(0xFFFFEBEE),
+          const Color(0xFFF44336),
+        ),
+        _buildQuickActionItem(
+          Icons.bookmark_border_rounded,
+          'Saved Plans',
+          () => _navigateToScreen(const TripsListScreen(title: 'Saved Plans')),
+          const Color(0xFFE0F2F1),
+          const Color(0xFF009688),
+        ),
+        _buildQuickActionItem(
+          Icons.newspaper_rounded,
+          'News',
+          () => _navigateToScreen(const NewsScreen()),
+          const Color(0xFFF1F5F9),
+          const Color(0xFF64748B),
+        ),
+        _buildQuickActionItem(
+          Icons.settings_rounded,
+          'Settings',
+          () => setState(() => _selectedIndex = 5),
+          const Color(0xFFF1F5F9),
+          const Color(0xFF475569),
+        ),
       ],
     );
   }
 
-  Widget _buildQuickActionItem(IconData icon, String label, VoidCallback onTap, Color bgColor, Color iconColor) {
+  Widget _buildQuickActionItem(
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+    Color bgColor,
+    Color iconColor,
+  ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return InkWell(
@@ -480,10 +548,14 @@ class _TouristDashboardState extends State<TouristDashboard> {
             width: 54,
             height: 54,
             decoration: BoxDecoration(
-              color: isDark ? iconColor.withOpacity(0.15) : iconColor.withOpacity(0.08),
+              color: isDark
+                  ? iconColor.withOpacity(0.15)
+                  : iconColor.withOpacity(0.08),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark ? iconColor.withOpacity(0.2) : iconColor.withOpacity(0.1),
+                color: isDark
+                    ? iconColor.withOpacity(0.2)
+                    : iconColor.withOpacity(0.1),
                 width: 1,
               ),
             ),
@@ -495,7 +567,9 @@ class _TouristDashboardState extends State<TouristDashboard> {
             style: GoogleFonts.poppins(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: isDark ? Colors.grey.shade300 : theme.colorScheme.onSurface.withOpacity(0.8),
+              color: isDark
+                  ? Colors.grey.shade300
+                  : theme.colorScheme.onSurface.withOpacity(0.8),
             ),
             textAlign: TextAlign.center,
           ),
@@ -505,10 +579,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
   }
 
   void _navigateToScreen(Widget screen) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => screen),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
   }
 
   Widget _buildAIFeatures() {
@@ -553,7 +624,15 @@ class _TouristDashboardState extends State<TouristDashboard> {
     );
   }
 
-  Widget _buildFeatureCard(int index, IconData icon, String title, String subtitle, Color color, Color bgColor, VoidCallback onTap) {
+  Widget _buildFeatureCard(
+    int index,
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+    Color bgColor,
+    VoidCallback onTap,
+  ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return GestureDetector(
@@ -565,11 +644,15 @@ class _TouristDashboardState extends State<TouristDashboard> {
           color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(28),
           border: Border.all(
-            color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.grey.withOpacity(0.05),
           ),
           boxShadow: [
             BoxShadow(
-              color: isDark ? Colors.black.withOpacity(0.2) : color.withOpacity(0.06),
+              color: isDark
+                  ? Colors.black.withOpacity(0.2)
+                  : color.withOpacity(0.06),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
@@ -584,12 +667,18 @@ class _TouristDashboardState extends State<TouristDashboard> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isDark ? color.withOpacity(0.1) : color.withOpacity(0.08),
+                    color: isDark
+                        ? color.withOpacity(0.1)
+                        : color.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(icon, color: color, size: 24),
                 ),
-                Icon(Icons.arrow_forward_rounded, size: 20, color: isDark ? Colors.white38 : color.withOpacity(0.3)),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 20,
+                  color: isDark ? Colors.white38 : color.withOpacity(0.3),
+                ),
               ],
             ),
             const Spacer(),
@@ -606,7 +695,9 @@ class _TouristDashboardState extends State<TouristDashboard> {
               subtitle,
               style: GoogleFonts.poppins(
                 fontSize: 13,
-                color: isDark ? Colors.white60 : theme.colorScheme.onSurface.withOpacity(0.6),
+                color: isDark
+                    ? Colors.white60
+                    : theme.colorScheme.onSurface.withOpacity(0.6),
                 height: 1.4,
               ),
               maxLines: 2,
@@ -621,7 +712,7 @@ class _TouristDashboardState extends State<TouristDashboard> {
   Widget _buildRecentTrips() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Column(
       children: [
         Row(
@@ -655,7 +746,9 @@ class _TouristDashboardState extends State<TouristDashboard> {
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+              color: isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.grey.shade100,
             ),
             boxShadow: [
               BoxShadow(
@@ -695,7 +788,9 @@ class _TouristDashboardState extends State<TouristDashboard> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: isDark ? Colors.white38 : theme.colorScheme.onSurface.withOpacity(0.4),
+                  color: isDark
+                      ? Colors.white38
+                      : theme.colorScheme.onSurface.withOpacity(0.4),
                   height: 1.5,
                 ),
               ),
@@ -737,53 +832,105 @@ class _TouristDashboardState extends State<TouristDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      extendBody: true,
-      appBar: null,
-      drawer: CustomDrawer(
-        userRole: 'Tourist',
-        onLogout: _handleLogout,
-      ),
-      body: Stack(
-        children: [
-          _buildDashboardContent(),
-          // Gradient fade at the bottom for better content visibility behind nav bar
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 100,
-            child: IgnorePointer(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Theme.of(context).scaffoldBackgroundColor.withOpacity(0),
-                      Theme.of(context).scaffoldBackgroundColor.withOpacity(0.95),
-                    ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (_selectedIndex != 0) {
+          // If not on home tab, go home first
+          setState(() => _selectedIndex = 0);
+        } else {
+          // On home tab: show exit confirmation
+          showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Text(
+                'Exit App',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              content: Text(
+                'Are you sure you want to exit?',
+                style: GoogleFonts.poppins(fontSize: 14),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      color: Color(AppConfig.textSecondaryColor),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    SystemNavigator.pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(AppConfig.primaryColor),
+                  ),
+                  child: Text(
+                    'Exit',
+                    style: GoogleFonts.poppins(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        extendBody: true,
+        appBar: null,
+        drawer: CustomDrawer(userRole: 'Tourist', onLogout: _handleLogout),
+        body: Stack(
+          children: [
+            _buildDashboardContent(),
+            // Gradient fade at the bottom for better content visibility behind nav bar
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 100,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Theme.of(
+                          context,
+                        ).scaffoldBackgroundColor.withOpacity(0),
+                        Theme.of(
+                          context,
+                        ).scaffoldBackgroundColor.withOpacity(0.95),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
+        bottomNavigationBar: _buildFloatingNavBar(),
       ),
-      bottomNavigationBar: _buildFloatingNavBar(),
     );
   }
 
   Widget _buildFloatingNavBar() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = Color(AppConfig.primaryColor);
 
     return Container(
-      height: 64,
-      margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      height: 68,
+      margin: const EdgeInsets.fromLTRB(10, 0, 10, 20),
       decoration: BoxDecoration(
-        color: Colors.transparent,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
@@ -793,27 +940,55 @@ class _TouristDashboardState extends State<TouristDashboard> {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(isDark ? 0.85 : 0.9),
-              borderRadius: BorderRadius.circular(28),
+              color: (isDark ? const Color(0xFF1E293B) : Colors.white)
+                  .withOpacity(isDark ? 0.85 : 0.9),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.08) : Colors.white.withOpacity(0.5),
+                color: isDark
+                    ? Colors.white.withOpacity(0.08)
+                    : primaryColor.withOpacity(0.1),
                 width: 1,
               ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildNavItem(0, Icons.grid_view_rounded, Icons.grid_view_outlined, 'Home'),
-                _buildNavItem(1, Icons.explore_rounded, Icons.explore_outlined, 'Explore'),
-                _buildNavItem(2, Icons.camera_enhance_rounded, Icons.camera_enhance_outlined, 'Scan'),
-                _buildNavItem(4, Icons.article_rounded, Icons.article_outlined, 'News'),
-                _buildNavItem(5, Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
+                _buildNavItem(
+                  0,
+                  Icons.grid_view_rounded,
+                  Icons.grid_view_outlined,
+                  'Home',
+                ),
+                _buildNavItem(
+                  1,
+                  Icons.explore_rounded,
+                  Icons.explore_outlined,
+                  'Explore',
+                ),
+                _buildNavItem(
+                  2,
+                  Icons.camera_enhance_rounded,
+                  Icons.camera_enhance_outlined,
+                  'Scan',
+                ),
+                _buildNavItem(
+                  4,
+                  Icons.article_rounded,
+                  Icons.article_outlined,
+                  'News',
+                ),
+                _buildNavItem(
+                  5,
+                  Icons.person_rounded,
+                  Icons.person_outline_rounded,
+                  'Profile',
+                ),
               ],
             ),
           ),
@@ -822,7 +997,12 @@ class _TouristDashboardState extends State<TouristDashboard> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData selectedIcon, IconData unselectedIcon, String label) {
+  Widget _buildNavItem(
+    int index,
+    IconData selectedIcon,
+    IconData unselectedIcon,
+    String label,
+  ) {
     final theme = Theme.of(context);
     final isSelected = _selectedIndex == index;
     final isDark = theme.brightness == Brightness.dark;
@@ -843,8 +1023,8 @@ class _TouristDashboardState extends State<TouristDashboard> {
               curve: Curves.easeOutQuart,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isSelected 
-                    ? primaryColor.withOpacity(isDark ? 0.2 : 0.1) 
+                color: isSelected
+                    ? primaryColor.withOpacity(isDark ? 0.2 : 0.1)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -853,9 +1033,9 @@ class _TouristDashboardState extends State<TouristDashboard> {
                 child: Icon(
                   isSelected ? selectedIcon : unselectedIcon,
                   key: ValueKey<bool>(isSelected),
-                  color: isSelected 
-                      ? primaryColor 
-                      : (isDark ? Colors.white38 : const Color(0xFF64748B)), // Slate 500 for modern look in light mode
+                  color: isSelected
+                      ? primaryColor
+                      : (isDark ? Colors.white38 : const Color(0xFF64748B)),
                   size: 22,
                 ),
               ),

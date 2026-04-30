@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import '../../config/app_config.dart';
 import '../../models/trip_model.dart';
 import '../../models/saved_trip_plan_model.dart';
@@ -10,8 +11,18 @@ import '../../widgets/formatted_text.dart';
 import 'create_trip_screen.dart';
 import 'ai_trip_planner_screen.dart';
 
+// Helper function to extract hex string from ObjectId format
+String _extractHexString(String id) {
+  final match = RegExp(r'ObjectId\("([0-9a-fA-F]{24})"\)').firstMatch(id);
+  if (match != null) {
+    return match.group(1)!;
+  }
+  return id;
+}
+
 class TripsListScreen extends StatefulWidget {
-  const TripsListScreen({super.key});
+  final String title;
+  const TripsListScreen({super.key, this.title = 'My Trips'});
 
   @override
   State<TripsListScreen> createState() => _TripsListScreenState();
@@ -77,9 +88,11 @@ class _TripsListScreenState extends State<TripsListScreen> {
       
       if (item is TripModel) {
         final collection = mongoService.getTripsCollection();
-        await collection.deleteOne({'_id': item.id});
+        // Convert string ID to ObjectId for MongoDB deletion
+        await collection.deleteOne({'_id': mongo.ObjectId.fromHexString(_extractHexString(item.id!))});
       } else if (item is SavedTripPlanModel) {
         final collection = mongoService.getSavedTripPlansCollection();
+        // SavedTripPlanModel stores ID as ObjectId already
         await collection.deleteOne({'_id': item.id});
       }
       
@@ -117,20 +130,23 @@ class _TripsListScreenState extends State<TripsListScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          'My Trips',
+          widget.title,
           style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
             color: Colors.white,
           ),
         ),
         elevation: 0,
         centerTitle: true,
         backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.sort_rounded, color: Colors.white),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
+        automaticallyImplyLeading: Navigator.canPop(context),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(

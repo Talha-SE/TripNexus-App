@@ -13,7 +13,9 @@ class MongoDBService {
     return _instance!;
   }
 
-  Future<bool> ensureConnected({Duration timeout = const Duration(seconds: 15)}) async {
+  Future<bool> ensureConnected({
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
     // If already connected, return immediately
     if (_db != null && _db!.isConnected) {
       print('✅ MongoDB Already Connected');
@@ -75,16 +77,16 @@ class MongoDBService {
         }
         _db = null;
       }
-      
+
       print('🔄 Connecting to MongoDB...');
-      
+
       _db = await Db.create(AppConfig.mongoDbConnectionString);
-      
+
       await _db!.open(secure: true);
-      
+
       // Verify connection with a simple command
       await _db!.serverStatus();
-      
+
       print('✅ MongoDB Connected Successfully');
     } catch (e) {
       print('❌ MongoDB Connection Error: $e');
@@ -163,6 +165,13 @@ class MongoDBService {
       throw Exception('Database not connected');
     }
     return _db!.collection('package_bookings');
+  }
+
+  DbCollection getBlockchainReviewsCollection() {
+    if (_db == null || !_db!.isConnected) {
+      throw Exception('Database not connected');
+    }
+    return _db!.collection(AppConfig.blockchainReviewsCollection);
   }
 
   bool get isConnected => _db != null && _db!.isConnected;

@@ -250,36 +250,29 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
               validator: (val) => val?.isEmpty ?? true ? 'Required' : null,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    controller: _priceController,
-                    label: 'Price (USD)',
-                    hint: '1000',
-                    keyboardType: TextInputType.number,
-                    validator: (val) {
-                      if (val?.isEmpty ?? true) return 'Required';
-                      if (double.tryParse(val!) == null) return 'Invalid';
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _durationController,
-                    label: 'Duration (Days)',
-                    hint: '5',
-                    keyboardType: TextInputType.number,
-                    validator: (val) {
-                      if (val?.isEmpty ?? true) return 'Required';
-                      if (int.tryParse(val!) == null) return 'Invalid';
-                      return null;
-                    },
-                  ),
-                ),
-              ],
+            _buildResponsivePair(
+              left: _buildTextField(
+                controller: _priceController,
+                label: 'Price',
+                hint: 'USD 1000',
+                keyboardType: TextInputType.number,
+                validator: (val) {
+                  if (val?.isEmpty ?? true) return 'Required';
+                  if (double.tryParse(val!) == null) return 'Invalid';
+                  return null;
+                },
+              ),
+              right: _buildTextField(
+                controller: _durationController,
+                label: 'Duration',
+                hint: '5 days',
+                keyboardType: TextInputType.number,
+                validator: (val) {
+                  if (val?.isEmpty ?? true) return 'Required';
+                  if (int.tryParse(val!) == null) return 'Invalid';
+                  return null;
+                },
+              ),
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -289,26 +282,19 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
               validator: (val) => val?.isEmpty ?? true ? 'Required' : null,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    controller: _maxTravelersController,
-                    label: 'Max Travelers',
-                    hint: '10',
-                    keyboardType: TextInputType.number,
-                    validator: (val) {
-                      if (val?.isEmpty ?? true) return 'Required';
-                      if (int.tryParse(val!) == null) return 'Invalid';
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildCategoryDropdown(),
-                ),
-              ],
+            _buildResponsivePair(
+              left: _buildTextField(
+                controller: _maxTravelersController,
+                label: 'Travelers',
+                hint: 'Max 10',
+                keyboardType: TextInputType.number,
+                validator: (val) {
+                  if (val?.isEmpty ?? true) return 'Required';
+                  if (int.tryParse(val!) == null) return 'Invalid';
+                  return null;
+                },
+              ),
+              right: _buildCategoryDropdown(),
             ),
             const SizedBox(height: 24),
             _buildSectionTitle('What\'s Included'),
@@ -398,6 +384,34 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
     );
   }
 
+  Widget _buildResponsivePair({
+    required Widget left,
+    required Widget right,
+    double spacing = 12,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 360) {
+          return Column(
+            children: [
+              left,
+              SizedBox(height: spacing),
+              right,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: left),
+            SizedBox(width: spacing),
+            Expanded(child: right),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
@@ -417,16 +431,36 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        floatingLabelBehavior: FloatingLabelBehavior.auto,
+        alignLabelWithHint: maxLines > 1,
+        labelStyle: GoogleFonts.poppins(fontSize: 14),
+        hintStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          color: Color(AppConfig.textSecondaryColor),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(AppConfig.primaryColor), width: 1.4),
+        ),
         filled: true,
+        fillColor: isDark ? Colors.white.withOpacity(0.04) : Colors.white,
       ),
+      style: GoogleFonts.poppins(fontSize: 15),
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
@@ -434,19 +468,59 @@ class _CreatePackageScreenState extends State<CreatePackageScreen> {
   }
 
   Widget _buildCategoryDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return DropdownButtonFormField<String>(
       value: _selectedCategory,
+      isExpanded: true,
+      icon: const Icon(Icons.expand_more_rounded),
+      style: GoogleFonts.poppins(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: Color(AppConfig.textPrimaryColor),
+      ),
       decoration: InputDecoration(
         labelText: 'Category',
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        labelStyle: GoogleFonts.poppins(fontSize: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(AppConfig.primaryColor), width: 1.4),
+        ),
         filled: true,
+        fillColor: isDark ? Colors.white.withOpacity(0.04) : Colors.white,
       ),
+      selectedItemBuilder: (context) {
+        return _categories
+            .map(
+              (category) => Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  category,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+              ),
+            )
+            .toList();
+      },
       items: _categories.map((category) {
         return DropdownMenuItem(
           value: category,
-          child: Text(category),
+          child: Text(
+            category,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
         );
       }).toList(),
       onChanged: (value) {

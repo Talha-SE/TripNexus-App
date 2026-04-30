@@ -286,7 +286,7 @@ class _AdvisorPackagesScreenState extends State<AdvisorPackagesScreen> {
 
   Widget _buildPackagesList() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 100),
       itemCount: _packages.length,
       itemBuilder: (context, index) {
         final package = _packages[index];

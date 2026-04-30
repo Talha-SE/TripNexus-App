@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'dart:io';
 import '../../config/app_config.dart';
 import '../../services/auth_service.dart';
 import '../../services/mongodb_service.dart';
 import '../../models/user_model.dart';
+
+// Helper function to extract hex string from ObjectId format
+String _extractHexString(String id) {
+  final match = RegExp(r'ObjectId\("([0-9a-fA-F]{24})"\)').firstMatch(id);
+  if (match != null) {
+    return match.group(1)!;
+  }
+  return id;
+}
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -112,12 +122,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       };
 
       await usersCollection.updateOne(
-        {'_id': _currentUser!.id},
+        {'_id': mongo.ObjectId.fromHexString(_extractHexString(_currentUser!.id!))},
         {'\$set': updateData},
       );
 
       // Reload user data
-      final updatedUserData = await usersCollection.findOne({'_id': _currentUser!.id});
+      final updatedUserData = await usersCollection.findOne({'_id': mongo.ObjectId.fromHexString(_extractHexString(_currentUser!.id!))});
       if (updatedUserData != null) {
         final updatedUser = UserModel.fromJson(updatedUserData);
         authService.updateCurrentUser(updatedUser);

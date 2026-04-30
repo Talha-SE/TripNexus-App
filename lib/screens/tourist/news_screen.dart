@@ -7,8 +7,7 @@ import '../../config/app_config.dart';
 import '../../models/news_model.dart';
 
 class NewsScreen extends StatefulWidget {
-  final bool showBackButton;
-  const NewsScreen({Key? key, this.showBackButton = true}) : super(key: key);
+  const NewsScreen({Key? key}) : super(key: key);
 
   @override
   State<NewsScreen> createState() => _NewsScreenState();
@@ -137,10 +136,47 @@ class _NewsScreenState extends State<NewsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      appBar: Navigator.canPop(context)
+          ? AppBar(
+              title: Text(
+                'Events & News',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Colors.white,
+                ),
+              ),
+              elevation: 0,
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              automaticallyImplyLeading: true,
+              flexibleSpace: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark 
+                      ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                      : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                ),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                onPressed: () => Navigator.pop(context),
+              ),
+            )
+          : null,
       body: Column(
         children: [
-          _buildHeader(),
+          if (!Navigator.canPop(context)) _buildHeader(),
+          if (Navigator.canPop(context)) const SizedBox(height: 100),
           _buildSearchBar(),
           _buildFilters(),
           Expanded(
@@ -295,22 +331,7 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   void _handleBack() {
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    } else {
-      // If we're in a tab and can't pop, we should probably do nothing
-      // or we could potentially use a global key to switch dashboard tabs,
-      // but usually tab-based navigation doesn't have "back" buttons that 
-      // switch tabs unless explicitly designed that way.
-      // However, since the user says it "doesn't work", providing some feedback
-      // or a default behavior is better.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Already on the main page'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-    }
+    Navigator.pop(context);
   }
 
   Widget _buildHeader() {
@@ -339,23 +360,6 @@ class _NewsScreenState extends State<NewsScreen> {
       ),
       child: Row(
         children: [
-          if (widget.showBackButton)
-            GestureDetector(
-              onTap: _handleBack,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                margin: const EdgeInsets.only(right: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
-                ),
-                child: const Icon(Icons.arrow_back_ios_new_rounded, 
-                  size: 18, 
-                  color: Colors.white
-                ),
-              ),
-            ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -87,177 +87,188 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
           ),
 
           SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                          ),
-                          child: const Icon(
-                            Icons.travel_explore,
-                            size: 80,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'TripNexus',
-                          style: GoogleFonts.poppins(
-                            fontSize: 42,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'Your AI-Powered Travel Companion',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.white.withOpacity(0.9),
-                              fontWeight: FontWeight.w500,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                                    ),
+                                    child: const Icon(
+                                      Icons.travel_explore,
+                                      size: 80,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    'TripNexus',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 42,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'Your AI-Powered Travel Companion',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                
-                Expanded(
-                  flex: 4,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 30,
-                            offset: Offset(0, -10),
+                          
+                          Expanded(
+                            flex: 4,
+                            child: SlideTransition(
+                              position: _slideAnimation,
+                              child: Container(
+                                width: double.infinity,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(40),
+                                    topRight: Radius.circular(40),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 30,
+                                      offset: Offset(0, -10),
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.fromLTRB(32, 40, 32, 24),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Text(
+                                          'Explore the World\nwith Confidence',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 26,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(AppConfig.textPrimaryColor),
+                                            height: 1.2,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Plan trips, discover landmarks, get weather updates, and connect with expert advisors.',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 15,
+                                            color: Color(AppConfig.textSecondaryColor),
+                                            height: 1.5,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 56,
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => const LoginScreen(),
+                                                ),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Color(AppConfig.primaryColor),
+                                              foregroundColor: Colors.white,
+                                              elevation: 8,
+                                              shadowColor: Color(AppConfig.primaryColor).withOpacity(0.4),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(16),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Login',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 56,
+                                          child: OutlinedButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => const RegisterScreen(),
+                                                ),
+                                              );
+                                            },
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: Color(AppConfig.primaryColor),
+                                              side: BorderSide(color: Color(AppConfig.primaryColor), width: 2),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(16),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Create Account',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.fromLTRB(32, 40, 32, 24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            children: [
-                              Text(
-                                'Explore the World\nwith Confidence',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(AppConfig.textPrimaryColor),
-                                  height: 1.2,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Plan trips, discover landmarks, get weather updates, and connect with expert advisors.',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 15,
-                                  color: Color(AppConfig.textSecondaryColor),
-                                  height: 1.5,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              SizedBox(
-                                width: double.infinity,
-                                height: 56,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const LoginScreen(),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(AppConfig.primaryColor),
-                                    foregroundColor: Colors.white,
-                                    elevation: 8,
-                                    shadowColor: Color(AppConfig.primaryColor).withOpacity(0.4),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Login',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 56,
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const RegisterScreen(),
-                                      ),
-                                    );
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Color(AppConfig.primaryColor),
-                                    side: BorderSide(color: Color(AppConfig.primaryColor), width: 2),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Create Account',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-                          ),
-                        ],
-                      ),
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         ],

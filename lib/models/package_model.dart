@@ -88,7 +88,7 @@ class PackageModel {
         final objIdMatch = RegExp(r'ObjectId\("([0-9a-fA-F]{24})"\)').firstMatch(rawId);
         if (objIdMatch != null) {
           normalizedId = objIdMatch.group(1);
-        } else if (RegExp(r'^[0-9a-fA-F]{24}\$').hasMatch(rawId)) {
+        } else if (RegExp(r'^[0-9a-fA-F]{24}$').hasMatch(rawId)) {
           normalizedId = rawId;
         } else {
           normalizedId = rawId;
@@ -203,6 +203,7 @@ class PackageBooking {
   final String paymentMethod; // cash, online
   final double amount;
   final String? notes;
+  final bool reviewSubmitted; // Track if traveler has submitted review for this booking
   final DateTime createdAt;
 
   PackageBooking({
@@ -215,6 +216,7 @@ class PackageBooking {
     this.paymentMethod = 'cash',
     required this.amount,
     this.notes,
+    this.reviewSubmitted = false,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -229,6 +231,7 @@ class PackageBooking {
       paymentMethod: json['paymentMethod'] as String? ?? 'cash',
       amount: (json['amount'] as num).toDouble(),
       notes: json['notes'] as String?,
+      reviewSubmitted: json['reviewSubmitted'] as bool? ?? false,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : DateTime.now(),
@@ -246,6 +249,7 @@ class PackageBooking {
       'paymentMethod': paymentMethod,
       'amount': amount,
       if (notes != null) 'notes': notes,
+      'reviewSubmitted': reviewSubmitted,
       'createdAt': createdAt.toIso8601String(),
     };
   }

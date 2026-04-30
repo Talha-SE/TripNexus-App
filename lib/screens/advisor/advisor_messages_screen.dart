@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import '../../config/app_config.dart';
 import '../../models/package_model.dart';
 import '../../models/user_model.dart';
@@ -7,6 +8,15 @@ import '../../services/auth_service.dart';
 import '../../services/package_service.dart';
 import '../../services/mongodb_service.dart';
 import '../tourist/package_chat_screen.dart';
+
+// Helper function to extract hex string from ObjectId format
+String _extractHexString(String id) {
+  final match = RegExp(r'ObjectId\("([0-9a-fA-F]{24})"\)').firstMatch(id);
+  if (match != null) {
+    return match.group(1)!;
+  }
+  return id;
+}
 
 class AdvisorMessagesScreen extends StatefulWidget {
   const AdvisorMessagesScreen({super.key});
@@ -75,12 +85,17 @@ class _AdvisorMessagesScreenState extends State<AdvisorMessagesScreen> {
           // Get traveler name from database
           String travelerName = 'Unknown User';
           try {
-            final travelerDoc = await usersCollection.findOne({'_id': travelerId});
+            // Convert string traveler ID to ObjectId for MongoDB query
+            final travelerHexId = _extractHexString(travelerId);
+            final travelerObjectId = mongo.ObjectId.fromHexString(travelerHexId);
+            final travelerDoc = await usersCollection.findOne({'_id': travelerObjectId});
             if (travelerDoc != null) {
               travelerName = travelerDoc['fullName'] as String? ?? 'Unknown User';
+            } else {
+              print('Traveler not found for ID: $travelerId');
             }
           } catch (e) {
-            print('Error fetching traveler name: $e');
+            print('Error fetching traveler name for ID $travelerId: $e');
           }
 
           final key = '${package.id}_$travelerId';
@@ -340,7 +355,11 @@ class _AdvisorMessagesScreenState extends State<AdvisorMessagesScreen> {
       // Get traveler details
       final mongoService = await MongoDBService.getInstance();
       final usersCollection = mongoService.getUsersCollection();
-      final travelerDoc = await usersCollection.findOne({'_id': conversation.travelerId});
+      
+      // Convert string traveler ID to ObjectId for MongoDB query
+      final travelerHexId = _extractHexString(conversation.travelerId);
+      final travelerObjectId = mongo.ObjectId.fromHexString(travelerHexId);
+      final travelerDoc = await usersCollection.findOne({'_id': travelerObjectId});
       
       if (travelerDoc == null) {
         if (mounted) {

@@ -7,7 +7,6 @@ import '../settings/privacy_security_screen.dart';
 import '../settings/notification_settings_screen.dart';
 import '../settings/settings_screen.dart';
 import 'edit_profile_screen.dart';
-import 'did_verification_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -66,47 +65,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _buildHeader(),
-          Transform.translate(
-            offset: const Offset(0, -30),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
-                children: [
-                  _buildStatistics(),
-                  const SizedBox(height: 16),
-                  _buildInfoSection(),
-                  const SizedBox(height: 16),
-                  _buildActionButtons(),
-                  const SizedBox(height: 40),
-                ],
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      appBar: Navigator.canPop(context)
+          ? AppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              automaticallyImplyLeading: true,
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+            )
+          : null,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Transform.translate(
+              offset: const Offset(0, -30),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  children: [
+                    _buildStatistics(),
+                    const SizedBox(height: 16),
+                    _buildInfoSection(),
+                    const SizedBox(height: 16),
+                    _buildActionButtons(),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   void _handleBack() {
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Already on the main page'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-    }
+    Navigator.pop(context);
   }
 
   Widget _buildHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(bottom: 30),
@@ -114,9 +123,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark 
-            ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-            : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+          colors: isDark
+              ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+              : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
         ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(40),
@@ -124,7 +133,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: (isDark ? Colors.black : Color(AppConfig.primaryColor)).withOpacity(0.3),
+            color: (isDark ? Colors.black : Color(AppConfig.primaryColor))
+                .withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -140,7 +150,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                    ),
                     onPressed: _handleBack,
                   ),
                   Text(
@@ -152,7 +165,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                    icon: const Icon(
+                      Icons.settings_outlined,
+                      color: Colors.white,
+                    ),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -191,7 +207,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ? NetworkImage(_user!.profileImage!)
                         : null,
                     child: _user!.profileImage == null
-                        ? Icon(Icons.person, size: 45, color: Colors.grey.shade400)
+                        ? Icon(
+                            Icons.person,
+                            size: 45,
+                            color: Colors.grey.shade400,
+                          )
                         : null,
                   ),
                 ),
@@ -202,7 +222,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onTap: () async {
                       final result = await Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const EditProfileScreen(),
+                        ),
                       );
                       if (result == true) {
                         _loadUserProfile();
@@ -221,7 +243,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ],
                       ),
-                      child: Icon(Icons.camera_alt, color: Color(AppConfig.primaryColor), size: 20),
+                      child: Icon(
+                        Icons.camera_alt,
+                        color: Color(AppConfig.primaryColor),
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
@@ -257,7 +283,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    _user!.isVerified ? Icons.verified : Icons.verified_outlined,
+                    _user!.isVerified
+                        ? Icons.verified
+                        : Icons.verified_outlined,
                     color: Colors.white,
                     size: 16,
                   ),
@@ -296,16 +324,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
         border: Border.all(
-          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
+          color: isDark
+              ? Colors.white.withOpacity(0.05)
+              : Colors.grey.withOpacity(0.1),
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildStatItem(Icons.flight_takeoff_rounded, 'Trips', '0'),
-          Container(height: 28, width: 1, color: isDark ? Colors.white10 : Colors.grey.shade100),
+          Container(
+            height: 28,
+            width: 1,
+            color: isDark ? Colors.white10 : Colors.grey.shade100,
+          ),
           _buildStatItem(Icons.bookmark_rounded, 'Saved', '0'),
-          Container(height: 28, width: 1, color: isDark ? Colors.white10 : Colors.grey.shade100),
+          Container(
+            height: 28,
+            width: 1,
+            color: isDark ? Colors.white10 : Colors.grey.shade100,
+          ),
           _buildStatItem(Icons.people_alt_rounded, 'Following', '0'),
         ],
       ),
@@ -315,20 +353,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildStatItem(IconData icon, String label, String value) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Color(AppConfig.primaryColor);
-    
+
     return Expanded(
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isDark ? primaryColor.withOpacity(0.2) : primaryColor.withOpacity(0.1),
+              color: isDark
+                  ? primaryColor.withOpacity(0.2)
+                  : primaryColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              icon, 
-              color: isDark ? primaryColor.withOpacity(0.9) : primaryColor, 
-              size: 18
+              icon,
+              color: isDark ? primaryColor.withOpacity(0.9) : primaryColor,
+              size: 18,
             ),
           ),
           const SizedBox(height: 6),
@@ -344,7 +384,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label,
             style: GoogleFonts.poppins(
               fontSize: 11,
-              color: isDark ? Colors.white60 : Color(AppConfig.textSecondaryColor),
+              color: isDark
+                  ? Colors.white60
+                  : Color(AppConfig.textSecondaryColor),
             ),
           ),
         ],
@@ -381,7 +423,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 offset: const Offset(0, 4),
               ),
             ],
-            border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.grey.shade100,
+            ),
           ),
           child: Column(
             children: [
@@ -394,11 +440,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
               if (_user!.address != null) ...[
                 _buildDivider(),
-                _buildInfoRow(Icons.location_on_outlined, 'Address', _user!.address!),
+                _buildInfoRow(
+                  Icons.location_on_outlined,
+                  'Address',
+                  _user!.address!,
+                ),
               ],
               if (_user!.languages != null && _user!.languages!.isNotEmpty) ...[
                 _buildDivider(),
-                _buildInfoRow(Icons.translate, 'Languages', _user!.languages!.join(', ')),
+                _buildInfoRow(
+                  Icons.translate,
+                  'Languages',
+                  _user!.languages!.join(', '),
+                ),
               ],
               _buildDivider(),
               _buildInfoRow(
@@ -415,7 +469,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -423,10 +477,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade50,
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: isDark ? Colors.white70 : Color(AppConfig.textSecondaryColor), size: 18),
+            child: Icon(
+              icon,
+              color: isDark
+                  ? Colors.white70
+                  : Color(AppConfig.textSecondaryColor),
+              size: 18,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -437,14 +499,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   label,
                   style: GoogleFonts.poppins(
                     fontSize: 11,
-                    color: isDark ? Colors.white54 : Color(AppConfig.textSecondaryColor),
+                    color: isDark
+                        ? Colors.white54
+                        : Color(AppConfig.textSecondaryColor),
                   ),
                 ),
                 Text(
                   value,
                   style: GoogleFonts.poppins(
                     fontSize: 13,
-                    color: isDark ? Colors.white : Color(AppConfig.textPrimaryColor),
+                    color: isDark
+                        ? Colors.white
+                        : Color(AppConfig.textPrimaryColor),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -458,19 +524,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildDivider() {
     return Divider(
-      height: 1, 
-      color: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.white.withOpacity(0.05) 
-          : Colors.grey.shade100, 
-      indent: 16, 
-      endIndent: 16
+      height: 1,
+      color: Theme.of(context).brightness == Brightness.dark
+          ? Colors.white.withOpacity(0.05)
+          : Colors.grey.shade100,
+      indent: 16,
+      endIndent: 16,
     );
   }
 
   Widget _buildActionButtons() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Color(AppConfig.textPrimaryColor);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -496,7 +562,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 offset: const Offset(0, 4),
               ),
             ],
-            border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.grey.shade100,
+            ),
           ),
           child: Column(
             children: [
@@ -506,25 +576,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: () async {
                   final result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfileScreen(),
+                    ),
                   );
                   if (result == true) {
                     _loadUserProfile();
                   }
-                },
-              ),
-              _buildDivider(),
-              _buildActionButton(
-                icon: Icons.fingerprint_rounded,
-                label: 'Fast Hotel Check-in (DID)',
-                color: Color(AppConfig.primaryColor),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DIDVerificationScreen(),
-                    ),
-                  );
                 },
               ),
               _buildDivider(),
@@ -581,10 +639,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isDark ? actionColor.withOpacity(0.2) : actionColor.withOpacity(0.1),
+                  color: isDark
+                      ? actionColor.withOpacity(0.2)
+                      : actionColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: isDark ? actionColor.withOpacity(0.9) : actionColor, size: 18),
+                child: Icon(
+                  icon,
+                  color: isDark ? actionColor.withOpacity(0.9) : actionColor,
+                  size: 18,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -593,14 +657,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: color ?? (isDark ? Colors.white : Color(AppConfig.textPrimaryColor)),
+                    color:
+                        color ??
+                        (isDark
+                            ? Colors.white
+                            : Color(AppConfig.textPrimaryColor)),
                   ),
                 ),
               ),
               Icon(
-                Icons.chevron_right_rounded, 
-                size: 18, 
-                color: isDark ? Colors.white24 : Colors.grey.shade400
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: isDark ? Colors.white24 : Colors.grey.shade400,
               ),
             ],
           ),
@@ -611,8 +679,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _formatDate(DateTime date) {
     final months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }

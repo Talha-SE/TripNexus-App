@@ -11,9 +11,16 @@ class PackageService {
 
   static Future<PackageService> getInstance() async {
     if (_instance == null) {
-      _instance = PackageService._();
-      _instance!._mongoService = await MongoDBService.getInstance();
-      await _instance!._mongoService.ensureConnected();
+      final service = PackageService._();
+      try {
+        service._mongoService = await MongoDBService.getInstance();
+        await service._mongoService.ensureConnected();
+        _instance = service;
+      } catch (e) {
+        print('Error initializing PackageService: $e');
+        _instance = null;
+        rethrow;
+      }
     }
     return _instance!;
   }
@@ -42,6 +49,11 @@ class PackageService {
   // Get bookings collection
   DbCollection _getBookingsCollection() {
     return _mongoService.getPackageBookingsCollection();
+  }
+
+  // Public access for dashboard updates
+  DbCollection getBookingsCollectionPublic() {
+    return _getBookingsCollection();
   }
 
   // Get messages collection
@@ -160,13 +172,17 @@ class PackageService {
       if (sortBy != null) {
         switch (sortBy) {
           case 'latest':
-            packages.sort((a, b) => (b['createdAt'] as String).compareTo(a['createdAt'] as String));
+            packages.sort((a, b) {
+              final aDate = a['createdAt'] as String? ?? '';
+              final bDate = b['createdAt'] as String? ?? '';
+              return bDate.compareTo(aDate);
+            });
             break;
           case 'price_low':
-            packages.sort((a, b) => (a['price'] as num).compareTo(b['price'] as num));
+            packages.sort((a, b) => ((a['price'] as num?) ?? 0).compareTo((b['price'] as num?) ?? 0));
             break;
           case 'price_high':
-            packages.sort((a, b) => (b['price'] as num).compareTo(a['price'] as num));
+            packages.sort((a, b) => ((b['price'] as num?) ?? 0).compareTo((a['price'] as num?) ?? 0));
             break;
           case 'rating':
             packages.sort((a, b) => ((b['rating'] as num?) ?? 0).compareTo((a['rating'] as num?) ?? 0));

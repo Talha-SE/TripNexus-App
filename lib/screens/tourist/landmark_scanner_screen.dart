@@ -156,7 +156,7 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          'Explore',
+          'Scan Landmark',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -166,6 +166,7 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
         elevation: 0,
         centerTitle: true,
         backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: Navigator.canPop(context),
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -181,10 +182,12 @@ class _LandmarkScannerScreenState extends State<LandmarkScannerScreen> {
             ),
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.sort_rounded, color: Colors.white),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: Stack(
         children: [

@@ -17,6 +17,7 @@ class _AdvisorPackagesBrowseScreenState extends State<AdvisorPackagesBrowseScree
   List<PackageModel> _allPackages = [];
   List<PackageModel> _packages = [];
   bool _isLoading = true;
+  String? _errorMessage;
   
   String? _selectedAdvisorType; // 'advisor_individual' or 'advisor_agency'
   double _minPrice = 0;
@@ -31,7 +32,10 @@ class _AdvisorPackagesBrowseScreenState extends State<AdvisorPackagesBrowseScree
   }
 
   Future<void> _loadPackages() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
       final packageService = await PackageService.getInstance();
@@ -52,11 +56,12 @@ class _AdvisorPackagesBrowseScreenState extends State<AdvisorPackagesBrowseScree
         _applySearch();
       }
     } catch (e) {
+      print('Error loading packages: $e');
       if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading packages: $e')),
-        );
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
       }
     }
   }
@@ -281,17 +286,45 @@ class _AdvisorPackagesBrowseScreenState extends State<AdvisorPackagesBrowseScree
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           'Advisor Packages',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
         ),
         elevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                : [Color(AppConfig.primaryColor), const Color(0xFF1565C0)],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(Icons.filter_list, color: Colors.white),
             onPressed: _showFiltersDialog,
           ),
         ],
@@ -354,11 +387,66 @@ class _AdvisorPackagesBrowseScreenState extends State<AdvisorPackagesBrowseScree
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : _packages.isEmpty
-                    ? _buildEmptyState()
-                    : _buildPackagesList(),
+                : _errorMessage != null
+                    ? _buildErrorState()
+                    : _packages.isEmpty
+                        ? _buildEmptyState()
+                        : _buildPackagesList(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 80,
+              color: Colors.red.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Failed to load packages',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Color(AppConfig.textPrimaryColor),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage ?? 'Unknown error',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Color(AppConfig.textSecondaryColor).withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadPackages,
+              icon: const Icon(Icons.refresh),
+              label: Text(
+                'Retry',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(AppConfig.primaryColor),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

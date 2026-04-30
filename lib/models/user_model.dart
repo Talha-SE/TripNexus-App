@@ -1,3 +1,5 @@
+import 'package:mongo_dart/mongo_dart.dart';
+
 enum UserRole {
   tourist,
   advisorIndividual,
@@ -76,8 +78,23 @@ class UserModel {
   }) : createdAt = createdAt ?? DateTime.now();
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Normalize _id to a 24-char hex string (avoid ObjectId.toString() which gives "ObjectId(\"...\")")
+    String? normalizedId;
+    final rawId = json['_id'];
+    if (rawId != null) {
+      if (rawId is ObjectId) {
+        normalizedId = rawId.toHexString();
+      } else if (rawId is String) {
+        final objIdMatch = RegExp(r'ObjectId\("([0-9a-fA-F]{24})"\)').firstMatch(rawId);
+        if (objIdMatch != null) {
+          normalizedId = objIdMatch.group(1);
+        } else {
+          normalizedId = rawId;
+        }
+      }
+    }
     return UserModel(
-      id: json['_id']?.toString(),
+      id: normalizedId,
       email: json['email'] as String,
       password: json['password'] as String?,
       fullName: json['fullName'] as String,
