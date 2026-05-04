@@ -6,7 +6,7 @@ import '../../services/mistral_service.dart';
 import '../../services/mongodb_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/saved_trip_plan_model.dart';
-import '../../widgets/formatted_text.dart';
+import '../../widgets/trip_plan_view.dart';
 
 class AITripPlannerScreen extends StatefulWidget {
   const AITripPlannerScreen({super.key});
@@ -462,7 +462,7 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
         Expanded(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 10, 24, 24),
+            padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 10, 16, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -491,51 +491,12 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
-                // Result Card
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.map_rounded, color: primaryColor, size: 24),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _destinationController.text,
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : theme.colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 32),
-                      FormattedText(
-                        text: _generatedPlan!,
-                        fontSize: 15,
-                        textColor: isDark ? Colors.white.withOpacity(0.7) : theme.colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ],
-                  ),
+                TripPlanView(
+                  destination: _destinationController.text.trim(),
+                  duration: int.tryParse(_durationController.text) ?? 0,
+                  interests: _interestsController.text.trim(),
+                  budget: _budgetController.text.trim().isEmpty ? null : _budgetController.text.trim(),
+                  planText: _generatedPlan!,
                 ),
                 const SizedBox(height: 100), // Space for bottom buttons
               ],

@@ -331,29 +331,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     String? hint,
     String? Function(String?)? validator,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
       validator: validator,
+      style: GoogleFonts.poppins(
+        color: isDark ? Colors.white : Colors.black87,
+      ),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: GoogleFonts.poppins(
+          color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+        ),
         hintText: hint,
+        hintStyle: GoogleFonts.poppins(
+          color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+        ),
         prefixIcon: Icon(icon, color: Color(AppConfig.primaryColor)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(
+            color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(
+            color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Color(AppConfig.primaryColor), width: 2),
         ),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: isDark ? const Color(0xFF1E293B) : Colors.grey.shade50,
       ),
     );
   }

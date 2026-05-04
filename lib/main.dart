@@ -284,7 +284,9 @@ class _SplashScreenState extends State<SplashScreen>
                           },
                         ),
                         Container(
-                          padding: const EdgeInsets.all(30),
+                          width: 172,
+                          height: 172,
+                          padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: LinearGradient(
@@ -307,10 +309,9 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.travel_explore_rounded,
-                            size: 92,
-                            color: Colors.white,
+                          child: Image.asset(
+                            'assets/tripnexus.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ],

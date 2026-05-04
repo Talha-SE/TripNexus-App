@@ -827,7 +827,11 @@ class _TouristDashboardState extends State<TouristDashboard> {
   }
 
   Widget _buildProfileTab() {
-    return const ProfileScreen();
+    return ProfileScreen(
+      onBack: () {
+        setState(() => _selectedIndex = 0);
+      },
+    );
   }
 
   @override
@@ -967,14 +971,14 @@ class _TouristDashboardState extends State<TouristDashboard> {
                 ),
                 _buildNavItem(
                   1,
-                  Icons.explore_rounded,
-                  Icons.explore_outlined,
-                  'Explore',
+                  Icons.map_rounded,
+                  Icons.map_outlined,
+                  'Trips',
                 ),
                 _buildNavItem(
                   2,
-                  Icons.camera_enhance_rounded,
-                  Icons.camera_enhance_outlined,
+                  Icons.camera_rounded,
+                  Icons.camera_outlined,
                   'Scan',
                 ),
                 _buildNavItem(

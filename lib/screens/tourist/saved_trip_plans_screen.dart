@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import '../../config/app_config.dart';
 import '../../services/auth_service.dart';
 import '../../services/mongodb_service.dart';
 import '../../models/saved_trip_plan_model.dart';
-import '../../widgets/formatted_text.dart';
+import '../../widgets/trip_plan_view.dart';
+import 'ai_trip_planner_screen.dart';
 
 class SavedTripPlansScreen extends StatefulWidget {
   const SavedTripPlansScreen({super.key});
@@ -136,31 +138,7 @@ class _SavedTripPlansScreenState extends State<SavedTripPlansScreen> {
               ),
             )
           : _savedPlans.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.bookmark_border_rounded, size: 80, color: isDark ? Colors.white24 : Colors.grey.shade400),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No saved trip plans',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          color: isDark ? Colors.white60 : Colors.grey.shade600,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Generate AI trip plans and save them here',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: isDark ? Colors.white38 : Colors.grey.shade500,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
+              ? _buildEmptyState(isDark)
               : Container(
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
@@ -172,92 +150,146 @@ class _SavedTripPlansScreenState extends State<SavedTripPlansScreen> {
                       itemCount: _savedPlans.length,
                       itemBuilder: (context, index) {
                         final plan = _savedPlans[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            side: BorderSide(
-                              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 18),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                                blurRadius: 15,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.08),
                             ),
                           ),
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                          child: InkWell(
-                            onTap: () => _showPlanDetails(plan),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Color(AppConfig.primaryColor).withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Icon(
-                                          Icons.location_on_rounded,
-                                          color: Color(AppConfig.primaryColor),
-                                          size: 20,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Text(
-                                          plan.destination,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _showPlanDetails(plan),
+                              borderRadius: BorderRadius.circular(24),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Color(AppConfig.primaryColor),
+                                                Color(AppConfig.primaryColor).withOpacity(0.7),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Color(AppConfig.primaryColor).withOpacity(0.3),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.map_rounded,
+                                            color: Colors.white,
+                                            size: 22,
                                           ),
                                         ),
-                                      ),
-                                      Icon(
-                                        Icons.chevron_right_rounded,
-                                        color: isDark ? Colors.white24 : Colors.grey.shade400,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      _buildInfoTag(
-                                        icon: Icons.calendar_today_rounded,
-                                        label: '${plan.duration} days',
-                                        isDark: isDark,
-                                      ),
-                                      if (plan.budget != null) ...[
-                                        const SizedBox(width: 12),
-                                        _buildInfoTag(
-                                          icon: Icons.attach_money_rounded,
-                                          label: plan.budget!,
-                                          isDark: isDark,
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                plan.destination,
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                                ),
+                                              ),
+                                              Text(
+                                                DateFormat('MMM d, yyyy').format(plan.savedAt),
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 12,
+                                                  color: isDark ? Colors.white38 : Colors.grey.shade500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade50,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.arrow_forward_ios_rounded,
+                                            color: isDark ? Colors.white24 : Colors.grey.shade400,
+                                            size: 14,
+                                          ),
                                         ),
                                       ],
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Icon(Icons.favorite_rounded, size: 14, color: isDark ? Colors.white38 : Colors.grey.shade500),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          plan.interests,
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 13,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Row(
+                                      children: [
+                                        _buildInfoTag(
+                                          icon: Icons.calendar_today_rounded,
+                                          label: '${plan.duration} days',
+                                          isDark: isDark,
+                                          color: Colors.blue,
+                                        ),
+                                        if (plan.budget != null) ...[
+                                          const SizedBox(width: 12),
+                                          _buildInfoTag(
+                                            icon: Icons.payments_rounded,
+                                            label: plan.budget!,
+                                            isDark: isDark,
+                                            color: Colors.green,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: isDark ? Colors.white.withOpacity(0.03) : Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.interests_rounded,
+                                            size: 14,
                                             color: isDark ? Colors.white38 : Colors.grey.shade500,
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              plan.interests,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                color: isDark ? Colors.white60 : Colors.grey.shade600,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -269,24 +301,101 @@ class _SavedTripPlansScreenState extends State<SavedTripPlansScreen> {
     );
   }
 
-  Widget _buildInfoTag({required IconData icon, required String label, required bool isDark}) {
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(30),
+              decoration: BoxDecoration(
+                color: Color(AppConfig.primaryColor).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.travel_explore_rounded,
+                size: 80,
+                color: Color(AppConfig.primaryColor).withOpacity(0.5),
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'No saved trip plans',
+              style: GoogleFonts.outfit(
+                fontSize: 24,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Your personalized AI travel itineraries will appear here once you save them.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                color: isDark ? Colors.white38 : Colors.grey.shade500,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AITripPlannerScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(AppConfig.primaryColor),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 8,
+                  shadowColor: Color(AppConfig.primaryColor).withOpacity(0.4),
+                ),
+                child: Text(
+                  'Generate My First Plan',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoTag({
+    required IconData icon,
+    required String label,
+    required bool isDark,
+    required Color color,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.1)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: isDark ? Colors.white60 : Colors.grey.shade600),
-          const SizedBox(width: 6),
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 8),
           Text(
             label,
             style: GoogleFonts.poppins(
               fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white60 : Colors.grey.shade600,
+              fontWeight: FontWeight.w600,
+              color: color,
             ),
           ),
         ],
@@ -300,6 +409,26 @@ class _TripPlanDetailScreen extends StatelessWidget {
   final VoidCallback onDelete;
 
   const _TripPlanDetailScreen({required this.plan, required this.onDelete});
+
+  void _copyToClipboard(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: plan.plan)).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white),
+              const SizedBox(width: 12),
+              const Text('Itinerary copied to clipboard!'),
+            ],
+          ),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -342,6 +471,11 @@ class _TripPlanDetailScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.copy_rounded, color: Colors.white, size: 22),
+            onPressed: () => _copyToClipboard(context),
+            tooltip: 'Copy itinerary',
+          ),
+          IconButton(
             icon: const Icon(Icons.delete_outline_rounded, color: Colors.white),
             onPressed: () {
               showDialog(
@@ -375,59 +509,13 @@ class _TripPlanDetailScreen extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(24, MediaQuery.of(context).padding.top + 100, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(Icons.location_on_rounded, color: primaryColor, size: 24),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            plan.destination,
-                            style: GoogleFonts.poppins(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : theme.colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 40),
-                    FormattedText(
-                      text: plan.plan,
-                      fontSize: 15,
-                      textColor: isDark ? Colors.white.withOpacity(0.7) : theme.colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          padding: EdgeInsets.fromLTRB(12, MediaQuery.of(context).padding.top + 100, 12, 24),
+          child: TripPlanView(
+            destination: plan.destination,
+            duration: plan.duration,
+            interests: plan.interests,
+            budget: plan.budget,
+            planText: plan.plan,
           ),
         ),
       ),

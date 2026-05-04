@@ -9,7 +9,8 @@ import '../settings/settings_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final VoidCallback? onBack;
+  const ProfileScreen({super.key, this.onBack});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -68,21 +69,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
-      appBar: Navigator.canPop(context)
-          ? AppBar(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              automaticallyImplyLeading: true,
-              leading: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-            )
-          : null,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -110,7 +96,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _handleBack() {
-    Navigator.pop(context);
+    if (widget.onBack != null) {
+      widget.onBack!();
+    } else if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 
   Widget _buildHeader() {

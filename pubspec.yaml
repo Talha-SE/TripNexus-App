@@ -68,6 +68,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.13
   json_serializable: ^6.8.0
+  flutter_launcher_icons: ^0.14.3
 
 flutter:
   uses-material-design: true
@@ -75,6 +76,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/tripnexus.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -101,3 +103,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/tripnexus.png
+  adaptive_icon_background: '#041D4D'
+  adaptive_icon_foreground: assets/tripnexus.png
