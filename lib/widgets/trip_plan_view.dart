@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../config/app_config.dart';
 import 'formatted_text.dart';
+import '../services/openverse_image_service.dart';
 
-class TripPlanView extends StatelessWidget {
+class TripPlanView extends StatefulWidget {
   final String destination;
   final int duration;
   final String interests;
@@ -18,6 +19,40 @@ class TripPlanView extends StatelessWidget {
     required this.planText,
     this.budget,
   });
+
+  @override
+  State<TripPlanView> createState() => _TripPlanViewState();
+}
+
+class _TripPlanViewState extends State<TripPlanView> {
+  int? _expandedDayIndex;
+  final OpenverseImageService _imageService = OpenverseImageService();
+  final Map<int, OpenverseImageAsset?> _dayImages = {};
+  final Map<String, OpenverseImageAsset?> _sectionImages = {};
+  OpenverseImageAsset? _heroImage;
+  bool _loadingVisualAssets = false;
+
+  String get destination => widget.destination;
+  int get duration => widget.duration;
+  String get interests => widget.interests;
+  String? get budget => widget.budget;
+  String get planText => widget.planText;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshVisualAssets();
+  }
+
+  @override
+  void didUpdateWidget(covariant TripPlanView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.planText != widget.planText ||
+        oldWidget.destination != widget.destination ||
+        oldWidget.interests != widget.interests) {
+      _refreshVisualAssets();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +78,7 @@ class TripPlanView extends StatelessWidget {
           primaryColor: primaryColor,
           title: parsed.title,
           sectionCount: sections.length,
+          imageAsset: _heroImage,
         ),
         const SizedBox(height: 24),
         ...sections.map((section) {
@@ -60,6 +96,7 @@ class TripPlanView extends StatelessWidget {
             section,
             isDark: isDark,
             primaryColor: primaryColor,
+            imageAsset: _sectionImages[section.title],
           );
         }),
         const SizedBox(height: 40),
@@ -72,6 +109,7 @@ class TripPlanView extends StatelessWidget {
     required bool isDark,
     required Color primaryColor,
     required int sectionCount,
+    OpenverseImageAsset? imageAsset,
     String? title,
   }) {
     final titleText = title?.isNotEmpty == true ? title! : 'Your Trip Plan';
@@ -99,6 +137,30 @@ class TripPlanView extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
         child: Stack(
           children: [
+            Positioned.fill(
+              child: imageAsset != null
+                  ? Image.network(
+                      imageAsset.thumbnailUrl,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                      errorBuilder: (context, error, stackTrace) => _buildImageFallback(destination),
+                    )
+                  : _buildImageFallback(destination),
+            ),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.1),
+                      Colors.black.withOpacity(0.72),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             // Decorative shapes
             Positioned(
               top: -60,
@@ -188,11 +250,19 @@ class TripPlanView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
+                  if (imageAsset != null)
+                    _buildImageCaption(
+                      title: imageAsset.title,
+                      creator: imageAsset.creator,
+                      license: imageAsset.license,
+                    ),
+                  if (imageAsset != null) const SizedBox(height: 18),
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
                     children: [
                       _buildHeroStat(Icons.calendar_today_rounded, '$duration Days'),
+                      _buildHeroStat(Icons.view_agenda_rounded, '$sectionCount Sections'),
                       if (budget != null && budget!.isNotEmpty)
                         _buildHeroStat(Icons.payments_rounded, budget!),
                       _buildHeroStat(Icons.insights_rounded, 'Personalized'),
@@ -233,11 +303,228 @@ class TripPlanView extends StatelessWidget {
     );
   }
 
+  Widget _buildFixedImageCard(
+    OpenverseImageAsset? imageAsset, {
+    String? fallbackLabel,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: imageAsset != null
+            ? Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    imageAsset.thumbnailUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildImageFallback(fallbackLabel),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.56),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 12,
+                    right: 12,
+                    bottom: 12,
+                    child: _buildImageCaption(
+                      title: imageAsset.title,
+                      creator: imageAsset.creator,
+                      license: imageAsset.license,
+                      compact: true,
+                    ),
+                  ),
+                ],
+              )
+            : _buildImageFallback(fallbackLabel),
+      ),
+    );
+  }
+
+  Widget _buildImageFallback(String? fallbackLabel) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.grey.shade300,
+            Colors.grey.shade200,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.photo_library_outlined,
+              color: Colors.grey.shade500,
+              size: 34,
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                fallbackLabel != null && fallbackLabel.isNotEmpty
+                    ? 'Searching images for $fallbackLabel'
+                    : 'Searching open images',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageCaption({
+    required String title,
+    required String creator,
+    required String license,
+    bool compact = false,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12, vertical: compact ? 7 : 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(compact ? 0.45 : 0.38),
+        borderRadius: BorderRadius.circular(compact ? 14 : 16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          const Icon(Icons.photo_library_outlined, color: Colors.white, size: 12),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              '$title · $creator · $license',
+              maxLines: compact ? 1 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: compact ? 10 : 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _refreshVisualAssets() async {
+    if (_loadingVisualAssets || !mounted) return;
+
+    final parsed = _parsePlan(planText);
+    final sections = parsed.sections;
+    final itinerarySection = sections.where((section) => _isItinerarySection(section.title)).toList();
+    final days = itinerarySection.isNotEmpty ? _parseDays(itinerarySection.first.lines) : const <_DayPlan>[];
+
+    setState(() => _loadingVisualAssets = true);
+
+    final nextDayImages = <int, OpenverseImageAsset?>{};
+    final nextSectionImages = <String, OpenverseImageAsset?>{};
+
+    final heroQuery = _cleanImageQuery('$destination travel highlights $interests') ?? destination;
+    final heroFuture = _imageService.searchBestImage(heroQuery, fallbackQuery: destination);
+
+    final dayFutures = <Future<void>>[];
+    for (var index = 0; index < days.length; index++) {
+      final dayNumber = index + 1;
+      final query = _buildDayImageQuery(days[index]);
+      dayFutures.add(
+        _imageService.searchBestImage(query, fallbackQuery: destination).then((asset) {
+          nextDayImages[dayNumber] = asset;
+        }),
+      );
+    }
+
+    final sectionFutures = <Future<void>>[];
+    for (final section in sections) {
+      if (!_shouldFetchSectionImage(section.title)) continue;
+      final query = _buildSectionImageQuery(section);
+      sectionFutures.add(
+        _imageService.searchBestImage(query, fallbackQuery: '$destination ${section.title}').then((asset) {
+          nextSectionImages[section.title] = asset;
+        }),
+      );
+    }
+
+    final heroAsset = await heroFuture;
+    await Future.wait([...dayFutures, ...sectionFutures]);
+
+    if (!mounted) return;
+    setState(() {
+      _heroImage = heroAsset;
+      _dayImages
+        ..clear()
+        ..addAll(nextDayImages);
+      _sectionImages
+        ..clear()
+        ..addAll(nextSectionImages);
+      _loadingVisualAssets = false;
+    });
+  }
+
+  bool _shouldFetchSectionImage(String title) {
+    final lower = title.toLowerCase();
+    return lower.contains('culinary') || lower.contains('food') || lower.contains('dining') || lower.contains('overview');
+  }
+
+  String _buildDayImageQuery(_DayPlan day) {
+    final preferredSource = day.evening.isNotEmpty
+        ? day.evening.first
+        : day.morning.isNotEmpty
+            ? day.morning.first
+            : day.afternoon.isNotEmpty
+                ? day.afternoon.first
+                : day.title;
+    final cleanedSource = _cleanImageQuery(preferredSource);
+    final cleanedTitle = _cleanImageQuery(day.title);
+    return [destination, cleanedTitle, cleanedSource].where((part) => part != null && part.isNotEmpty).join(' ');
+  }
+
+  String _buildSectionImageQuery(_PlanSection section) {
+    final contentSeed = section.lines.take(4).join(' ');
+    final cleanedSeed = _cleanImageQuery(contentSeed);
+    final cleanedTitle = _cleanImageQuery(section.title);
+    return [destination, cleanedTitle, cleanedSeed].where((part) => part != null && part.isNotEmpty).join(' ');
+  }
+
+  String? _cleanImageQuery(String text) {
+    final cleaned = text
+        .replaceAll(RegExp(r'[\*#_`\[\]\(\)]'), ' ')
+        .replaceAll(RegExp(r'[^a-zA-Z0-9\s-]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    if (cleaned.isEmpty) return null;
+
+    final parts = cleaned.split(' ');
+    final limited = parts.take(8).join(' ');
+    return limited.isEmpty ? null : limited;
+  }
+
   Widget _buildSectionCard(
     BuildContext context,
     _PlanSection section, {
     required bool isDark,
     required Color primaryColor,
+    OpenverseImageAsset? imageAsset,
   }) {
     final icon = _iconForSection(section.title);
     final accentColor = _sectionAccentColor(section.title, primaryColor);
@@ -310,6 +597,11 @@ class TripPlanView extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (imageAsset != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 18),
+                    child: _buildFixedImageCard(imageAsset),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                   child: FormattedText(
@@ -375,6 +667,7 @@ class TripPlanView extends StatelessWidget {
             isLast: entry.key == days.length - 1,
             isDark: isDark,
             primaryColor: primaryColor,
+            imageAsset: _dayImages[entry.key + 1],
           );
         }),
       ],
@@ -387,12 +680,24 @@ class TripPlanView extends StatelessWidget {
     required bool isLast,
     required bool isDark,
     required Color primaryColor,
+    OpenverseImageAsset? imageAsset,
   }) {
-    return IntrinsicHeight(
+    final expanded = _expandedDayIndex == dayNumber;
+    final summaryLine = day.morning.isNotEmpty
+        ? day.morning.first
+        : day.afternoon.isNotEmpty
+            ? day.afternoon.first
+            : day.evening.isNotEmpty
+                ? day.evening.first
+                : day.misc.isNotEmpty
+                    ? day.misc.first
+                    : 'Tap to reveal the full plan for this day.';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Timeline indicator
           Padding(
             padding: const EdgeInsets.only(left: 4, right: 12),
             child: Column(
@@ -402,20 +707,22 @@ class TripPlanView extends StatelessWidget {
                   height: 38,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [primaryColor, primaryColor.withBlue(255).withRed(100)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [primaryColor, primaryColor.withOpacity(0.75)],
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: primaryColor.withOpacity(0.4),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
+                        color: primaryColor.withOpacity(0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Center(
                     child: Text(
-                      'D$dayNumber',
+                      '$dayNumber',
                       style: GoogleFonts.outfit(
                         color: Colors.white,
                         fontSize: 13,
@@ -434,7 +741,7 @@ class TripPlanView extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            primaryColor.withOpacity(0.4),
+                            primaryColor.withOpacity(0.35),
                             primaryColor.withOpacity(0.05),
                           ],
                         ),
@@ -445,95 +752,213 @@ class TripPlanView extends StatelessWidget {
               ],
             ),
           ),
-          // Content
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                  border: Border.all(
-                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.08),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111C31) : Colors.white,
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: expanded
+                      ? primaryColor.withOpacity(0.25)
+                      : isDark
+                          ? Colors.white.withOpacity(0.05)
+                          : Colors.grey.withOpacity(0.08),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.18 : 0.06),
+                    blurRadius: expanded ? 22 : 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(26),
+                  onTap: () {
+                    setState(() {
+                      _expandedDayIndex = expanded ? null : dayNumber;
+                    });
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildFixedImageCard(imageAsset, fallbackLabel: day.title),
+                      const SizedBox(height: 14),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  day.title,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    _buildCompactChip(
+                                      Icons.wb_sunny_rounded,
+                                      '${day.morning.length} morning',
+                                      const Color(0xFFF59E0B),
+                                      isDark,
+                                    ),
+                                    _buildCompactChip(
+                                      Icons.wb_cloudy_rounded,
+                                      '${day.afternoon.length} afternoon',
+                                      const Color(0xFF3B82F6),
+                                      isDark,
+                                    ),
+                                    _buildCompactChip(
+                                      Icons.nights_stay_rounded,
+                                      '${day.evening.length} evening',
+                                      const Color(0xFF6366F1),
+                                      isDark,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          AnimatedRotation(
+                            turns: expanded ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeOutCubic,
+                            child: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: isDark ? Colors.white54 : Colors.grey.shade600,
+                              size: 28,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        summaryLine,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: isDark ? Colors.white70 : Colors.grey.shade700,
+                          height: 1.5,
+                        ),
+                      ),
+                      AnimatedCrossFade(
+                        firstChild: const SizedBox(height: 0),
+                        secondChild: Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (day.morning.isNotEmpty)
+                                _buildTimeRow(
+                                  'Morning',
+                                  day.morning,
+                                  Icons.wb_sunny_rounded,
+                                  const Color(0xFFF59E0B),
+                                  isDark,
+                                ),
+                              if (day.afternoon.isNotEmpty)
+                                _buildTimeRow(
+                                  'Afternoon',
+                                  day.afternoon,
+                                  Icons.wb_cloudy_rounded,
+                                  const Color(0xFF3B82F6),
+                                  isDark,
+                                ),
+                              if (day.evening.isNotEmpty)
+                                _buildTimeRow(
+                                  'Evening',
+                                  day.evening,
+                                  Icons.nights_stay_rounded,
+                                  const Color(0xFF6366F1),
+                                  isDark,
+                                ),
+                              if (day.tips.isNotEmpty)
+                                Container(
+                                  margin: const EdgeInsets.only(top: 8),
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.amber.withOpacity(0.15)),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.tips_and_updates_rounded, color: Colors.amber, size: 18),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          day.tips.join(' '),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            color: isDark ? Colors.amber.shade100 : Colors.amber.shade900,
+                                            fontWeight: FontWeight.w500,
+                                            fontStyle: FontStyle.italic,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        crossFadeState: expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                        duration: const Duration(milliseconds: 260),
+                        firstCurve: Curves.easeOut,
+                        secondCurve: Curves.easeOutCubic,
+                        sizeCurve: Curves.easeOutCubic,
+                      ),
+                    ],
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      day.title,
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (day.morning.isNotEmpty)
-                      _buildTimeRow(
-                        'Morning',
-                        day.morning,
-                        Icons.wb_sunny_rounded,
-                        const Color(0xFFF59E0B),
-                        isDark,
-                      ),
-                    if (day.afternoon.isNotEmpty)
-                      _buildTimeRow(
-                        'Afternoon',
-                        day.afternoon,
-                        Icons.wb_cloudy_rounded,
-                        const Color(0xFF3B82F6),
-                        isDark,
-                      ),
-                    if (day.evening.isNotEmpty)
-                      _buildTimeRow(
-                        'Evening',
-                        day.evening,
-                        Icons.nights_stay_rounded,
-                        const Color(0xFF6366F1),
-                        isDark,
-                      ),
-                    if (day.tips.isNotEmpty)
-                      Container(
-                        margin: const EdgeInsets.only(top: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.amber.withOpacity(0.15)),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.tips_and_updates_rounded, color: Colors.amber, size: 18),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                day.tips.join(' '),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: isDark ? Colors.amber.shade100 : Colors.amber.shade900,
-                                  fontWeight: FontWeight.w500,
-                                  fontStyle: FontStyle.italic,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactChip(
+    IconData icon,
+    String label,
+    Color color,
+    bool isDark,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withOpacity(isDark ? 0.16 : 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.14)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 13),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
             ),
           ),
         ],
@@ -715,8 +1140,9 @@ class TripPlanView extends StatelessWidget {
     String currentBlock = 'misc';
 
     void commit() {
-      if (current != null) {
-        days.add(current!);
+      final day = current;
+      if (day != null) {
+        days.add(day);
       }
     }
 

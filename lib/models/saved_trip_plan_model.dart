@@ -7,6 +7,8 @@ class SavedTripPlanModel {
   final int duration;
   final String interests;
   final String? budget;
+  final String? budgetAmount;
+  final String? budgetCurrency;
   final String plan;
   final DateTime savedAt;
 
@@ -17,6 +19,8 @@ class SavedTripPlanModel {
     required this.duration,
     required this.interests,
     this.budget,
+    this.budgetAmount,
+    this.budgetCurrency,
     required this.plan,
     DateTime? savedAt,
   }) : savedAt = savedAt ?? DateTime.now();
@@ -29,6 +33,8 @@ class SavedTripPlanModel {
       'duration': duration,
       'interests': interests,
       if (budget != null) 'budget': budget,
+      if (budgetAmount != null) 'budgetAmount': budgetAmount,
+      if (budgetCurrency != null) 'budgetCurrency': budgetCurrency,
       'plan': plan,
       'savedAt': savedAt.toIso8601String(),
     };
@@ -42,10 +48,23 @@ class SavedTripPlanModel {
       duration: json['duration'] as int,
       interests: json['interests'] as String,
       budget: json['budget'] as String?,
+      budgetAmount: json['budgetAmount']?.toString(),
+      budgetCurrency: json['budgetCurrency']?.toString(),
       plan: json['plan'] as String,
       savedAt: json['savedAt'] is String
           ? DateTime.parse(json['savedAt'])
           : (json['savedAt'] as DateTime),
     );
+  }
+
+  String? get displayBudget {
+    final amount = budgetAmount?.trim();
+    final currency = budgetCurrency?.trim();
+
+    if (amount != null && amount.isNotEmpty && currency != null && currency.isNotEmpty) {
+      return '$currency $amount';
+    }
+
+    return budget;
   }
 }

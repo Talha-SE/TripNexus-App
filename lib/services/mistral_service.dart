@@ -139,89 +139,99 @@ Format your response as follows:
     try {
       print('🗺️ Generating trip plan with Mistral Small...');
       
-      final budgetInfo = budget != null && budget.isNotEmpty ? '\nBudget: $budget' : '';
+      final budgetInfo = budget != null && budget.isNotEmpty
+          ? '\n- Budget context: $budget'
+          : '\n- Budget context: not specified';
       
       final messages = [
         {
           'role': 'system',
-          'content': '''You are an elite AI luxury travel consultant. Your goal is to create high-end, visually structured, and deeply practical trip itineraries.
-          
-Rules for formatting:
-1. Use professional and evocative language.
-2. Use Markdown headings properly (# for title, ## for sections, ### for days).
-3. Use relevant emojis at the start of every heading and important point.
-4. Use **bold** for locations, times, and prices.
-5. Use bullet points for activities and lists.
-6. Group activities into Morning, Afternoon, and Evening.
-7. Include estimated costs for every major activity and meal.
-8. Add a "Pro Tip" or "Hidden Gem" for each day.
-9. Keep the tone sophisticated yet welcoming.
-10. Ensure the layout is clean with clear spacing between sections.'''
+          'content': '''You are an elite AI travel planner that writes card-ready itinerary markdown.
+
+Formatting rules:
+1. Output only clean Markdown, no tables and no code blocks.
+2. Use one H1 title, then short H2 sections, then H3 day headings.
+3. Keep every day self-contained and easy to render in a collapsible card.
+4. Use concise bullets under Morning, Afternoon, Evening, Budget, and Tip.
+5. If a budget and currency are provided, use that currency consistently in costs and breakdowns.
+6. Keep paragraphs short, with one to three sentences maximum.
+7. Prefer vivid but practical language. Avoid filler and repetition.
+8. Include exact place names, estimated times, and realistic costs.
+9. Make the output visually clean so it reads well in a modern mobile UI.
+10. End with a practical budget summary and travel advice.
+11. Use clear place and dish names in each day so the app can attach matching images from the internet.'''
         },
         {
           'role': 'user',
-          'content': '''Create a prestigious $duration-day trip plan for:
+          'content': '''Create a premium $duration-day trip plan for:
 
 📍 Destination: $destination
 ⏱️ Duration: $duration days
 🎯 Interests: $interests$budgetInfo
 
-Please structure the response as follows:
+Use this exact structure and keep it tight enough for a modern card UI:
 
-# 🌍 Your Exclusive $duration-Day Journey to $destination
+# 🌍 $destination Travel Plan
 
-## 📋 Trip Overview
-[A sophisticated 2-3 sentence introduction to the destination and the vibe of this trip.]
+## 📋 Quick Snapshot
+- Destination: $destination
+- Duration: $duration days
+- Travel style: [match the user's interests]
+- Budget: [use the provided budget and currency if available, otherwise give a flexible estimate]
 
-## 📅 The Itinerary
+## 📅 Day-by-Day Plan
 
-### 🌅 Day 1: [Elegant Theme Name]
-**Morning (9:00 AM - 12:30 PM)**
-• 🏛️ **[Location Name]** - [Brief description]. (Time: **2.5 hours**, Cost: **\$XX**)
-• ☕ **[Cafe/Spot]** - [Why visit].
+### Day 1 - [Theme Name]
+**Morning**
+- 🏛️ **[Location Name]** - [brief description].
+- ☕ **[Cafe/Spot]** - [why it fits the day].
 
-**Afternoon (1:30 PM - 5:30 PM)**
-• 🎨 **[Activity]** - [Details]. (Cost: **\$XX**)
-• 🌳 **[Park/Walk]** - [Details].
+**Afternoon**
+- 🎨 **[Activity]** - [brief details and estimated cost].
+- 🌳 **[Park/Walk]** - [brief details].
 
-**Evening (7:00 PM+)**
-• 🍽️ **Dinner at [Restaurant Name]** - [Cuisine/Atmosphere]. (Est. Cost: **\$XX**)
-• 🌃 **[Evening Activity]** - [Details].
+**Evening**
+- 🍽️ **Dinner at [Restaurant Name]** - [cuisine/atmosphere and estimated cost].
+- 🌃 **[Evening Activity]** - [brief details].
 
-✨ **Hidden Gem:** [A unique, less-known spot or experience for today].
+**Budget**
+- [Short daily budget estimate in the provided currency].
 
-[Continue this exact structure for all $duration days]
+**Tip**
+- ✨ [One practical hidden gem or local tip].
+
+[Repeat the same day-card structure for all $duration days.]
 
 ## 🍽️ Culinary Highlights
-• 🥘 **Must-Try Dishes**: [List with brief descriptions]
-• 🍷 **Top Dining Spots**: [List of 3-4 varied restaurants]
+- 🥘 **Must-Try Dishes**: [3 to 5 dishes with brief descriptions]
+- 🍷 **Top Dining Spots**: [3 to 4 places]
 
-## 🚇 Seamless Transportation
-• 🚕 **Getting Around**: [Best ways to navigate]
-• 💳 **Travel Pass/Costs**: [Specific card names or daily estimates]
+## 🚇 Transportation
+- 🚕 **Getting Around**: [best ways to move around]
+- 💳 **Travel Pass/Costs**: [daily estimate or transport pass]
 
-## 💰 Investment Breakdown (USD)
-• 🏨 **Accommodation**: **\$XX - \$XX** per night
-• 🎟️ **Daily Activities**: **\$XX**
-• 🍽️ **Daily Dining**: **\$XX**
-• 📈 **Total Estimated Investment**: **\$XXXX**
+## 💰 Budget Breakdown
+- 🏨 **Accommodation**: [range in the selected currency]
+- 🎟️ **Daily Activities**: [range in the selected currency]
+- 🍽️ **Daily Dining**: [range in the selected currency]
+- 📈 **Total Estimated Cost**: [total in the selected currency]
 
 ## 🌱 Sustainable Travel
-• [3 specific eco-friendly tips for this destination]
+- [3 specific eco-friendly tips for this destination]
 
-## 💡 Expert Travel Advice
-• 🛂 **Entry & Customs**: [Crucial local info]
-• 💵 **Money & Tipping**: [Local currency and etiquette]
-• 📱 **Connectivity**: [SIM/eSIM advice]
+## 💡 Practical Advice
+- 🛂 **Entry & Customs**: [crucial local info]
+- 💵 **Money & Tipping**: [currency and etiquette]
+- 📱 **Connectivity**: [SIM/eSIM advice]
 
-Be extremely specific with names of restaurants, museums, and streets!'''
+Be specific with names of restaurants, museums, streets, and neighborhoods, but keep each bullet short enough for mobile cards.'''
         }
       ];
 
       final result = await _callMistralAPI(
         model: AppConfig.mistralTripPlanModel,
         messages: messages,
-        temperature: 0.7,
+        temperature: 0.55,
         maxTokens: 4096,
       );
 

@@ -19,8 +19,21 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
   final _formKey = GlobalKey<FormState>();
   final _destinationController = TextEditingController();
   final _interestsController = TextEditingController();
-  final _budgetController = TextEditingController();
+  final _budgetAmountController = TextEditingController();
   final _durationController = TextEditingController();
+  String _selectedCurrency = 'USD';
+
+  static const List<String> _currencyOptions = [
+    'USD',
+    'PKR',
+    'EUR',
+    'GBP',
+    'AED',
+    'SAR',
+    'INR',
+    'CAD',
+    'AUD',
+  ];
   
   bool _isGenerating = false;
   bool _isSaving = false;
@@ -30,9 +43,15 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
   void dispose() {
     _destinationController.dispose();
     _interestsController.dispose();
-    _budgetController.dispose();
+    _budgetAmountController.dispose();
     _durationController.dispose();
     super.dispose();
+  }
+
+  String? _buildBudgetLabel() {
+    final amount = _budgetAmountController.text.trim();
+    if (amount.isEmpty) return null;
+    return '$_selectedCurrency $amount';
   }
 
   Future<void> _generateTripPlan() async {
@@ -49,7 +68,7 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
         destination: _destinationController.text.trim(),
         duration: int.parse(_durationController.text),
         interests: _interestsController.text.trim(),
-        budget: _budgetController.text.trim().isEmpty ? null : _budgetController.text.trim(),
+        budget: _buildBudgetLabel(),
       );
 
       if (mounted) {
@@ -102,7 +121,9 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
         destination: _destinationController.text.trim(),
         duration: int.parse(_durationController.text),
         interests: _interestsController.text.trim(),
-        budget: _budgetController.text.trim().isEmpty ? null : _budgetController.text.trim(),
+        budget: _buildBudgetLabel(),
+        budgetAmount: _budgetAmountController.text.trim().isEmpty ? null : _budgetAmountController.text.trim(),
+        budgetCurrency: _budgetAmountController.text.trim().isEmpty ? null : _selectedCurrency,
         plan: _generatedPlan!,
       );
 
@@ -311,11 +332,25 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
               },
             ),
             const SizedBox(height: 16),
-            _buildInputField(
-              controller: _budgetController,
-              label: 'Budget (Optional)',
-              hint: 'e.g., \$2000, Mid-range',
-              icon: Icons.payments_rounded,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: _buildInputField(
+                    controller: _budgetAmountController,
+                    label: 'Budget Amount (Optional)',
+                    hint: 'e.g., 2000',
+                    icon: Icons.payments_rounded,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: _buildCurrencyDropdown(),
+                ),
+              ],
             ),
             const SizedBox(height: 32),
             
@@ -452,6 +487,59 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
     );
   }
 
+  Widget _buildCurrencyDropdown() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return DropdownButtonFormField<String>(
+      value: _selectedCurrency,
+      items: _currencyOptions
+          .map(
+            (currency) => DropdownMenuItem<String>(
+              value: currency,
+              child: Text(
+                currency,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: (value) {
+        if (value == null) return;
+        setState(() => _selectedCurrency = value);
+      },
+      icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.primary),
+      decoration: InputDecoration(
+        labelText: 'Currency',
+        labelStyle: GoogleFonts.poppins(
+          color: isDark ? Colors.white38 : Colors.grey.shade500,
+          fontSize: 14,
+        ),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPlanView() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -495,7 +583,7 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
                   destination: _destinationController.text.trim(),
                   duration: int.tryParse(_durationController.text) ?? 0,
                   interests: _interestsController.text.trim(),
-                  budget: _budgetController.text.trim().isEmpty ? null : _budgetController.text.trim(),
+                  budget: _buildBudgetLabel(),
                   planText: _generatedPlan!,
                 ),
                 const SizedBox(height: 100), // Space for bottom buttons

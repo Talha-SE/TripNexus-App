@@ -252,7 +252,7 @@ class _SavedTripPlansScreenState extends State<SavedTripPlansScreen> {
                                           const SizedBox(width: 12),
                                           _buildInfoTag(
                                             icon: Icons.payments_rounded,
-                                            label: plan.budget!,
+                                            label: plan.displayBudget ?? plan.budget!,
                                             isDark: isDark,
                                             color: Colors.green,
                                           ),
@@ -514,7 +514,7 @@ class _TripPlanDetailScreen extends StatelessWidget {
             destination: plan.destination,
             duration: plan.duration,
             interests: plan.interests,
-            budget: plan.budget,
+            budget: plan.displayBudget ?? plan.budget,
             planText: plan.plan,
           ),
         ),
