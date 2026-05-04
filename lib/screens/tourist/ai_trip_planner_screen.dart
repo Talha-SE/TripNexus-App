@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:intl/intl.dart';
 import '../../config/app_config.dart';
 import '../../services/mistral_service.dart';
 import '../../services/mongodb_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/open_meteo_service.dart';
 import '../../models/saved_trip_plan_model.dart';
 import '../../widgets/trip_plan_view.dart';
 
@@ -20,7 +22,9 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
   final _destinationController = TextEditingController();
   final _interestsController = TextEditingController();
   final _budgetAmountController = TextEditingController();
-  final _durationController = TextEditingController();
+  final _meteoService = OpenMeteoService.getInstance();
+  DateTime? _startDate;
+  DateTime? _endDate;
   String _selectedCurrency = 'USD';
 
   static const List<String> _currencyOptions = [
@@ -44,8 +48,53 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
     _destinationController.dispose();
     _interestsController.dispose();
     _budgetAmountController.dispose();
-    _durationController.dispose();
     super.dispose();
+  }
+
+  int get _tripDurationDays {
+    if (_startDate == null || _endDate == null) return 0;
+    return _endDate!.difference(_startDate!).inDays + 1;
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isStartDate
+          ? (_startDate ?? DateTime.now())
+          : (_endDate ?? DateTime.now().add(const Duration(days: 7))),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isStartDate) {
+          _startDate = picked;
+          if (_endDate != null && _endDate!.isBefore(picked)) {
+            _endDate = picked;
+          }
+        } else {
+          _endDate = picked;
+          if (_startDate != null && picked.isBefore(_startDate!)) {
+            _startDate = picked;
+          }
+        }
+      });
+    }
+  }
+
+  String _formatDate(DateTime date) => DateFormat('MMM dd, yyyy').format(date);
+
+  String? _validateDateRange() {
+    if (_startDate == null || _endDate == null) {
+      return 'Please select a start and end date';
+    }
+
+    if (_endDate!.isBefore(_startDate!)) {
+      return 'End date must be on or after the start date';
+    }
+
+    return null;
   }
 
   String? _buildBudgetLabel() {
@@ -57,6 +106,17 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
   Future<void> _generateTripPlan() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final dateValidationMessage = _validateDateRange();
+    if (dateValidationMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(dateValidationMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isGenerating = true;
       _generatedPlan = null;
@@ -64,11 +124,24 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
 
     try {
       final mistral = MistralService.getInstance();
+      final destination = _destinationController.text.trim();
+      final weatherContext = await _meteoService.getTripPlanningInsights(
+        destination: destination,
+        startDate: _startDate!,
+        endDate: _endDate!,
+      );
+
       final result = await mistral.generateTripPlan(
-        destination: _destinationController.text.trim(),
-        duration: int.parse(_durationController.text),
+        destination: destination,
+        duration: _tripDurationDays,
         interests: _interestsController.text.trim(),
         budget: _buildBudgetLabel(),
+        startDate: _startDate,
+        endDate: _endDate,
+        weatherContext: weatherContext['success'] == true ? weatherContext['weatherContext'] as String? : null,
+        weatherByTripDay: weatherContext['success'] == true ? weatherContext['weatherByTripDay'] as String? : null,
+        calendarContext: weatherContext['success'] == true ? weatherContext['calendarContext'] as String? : null,
+        coverageNote: weatherContext['success'] == true ? weatherContext['coverageNote'] as String? : null,
       );
 
       if (mounted) {
@@ -119,7 +192,9 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
       final savedPlan = SavedTripPlanModel(
         userId: user.id!,
         destination: _destinationController.text.trim(),
-        duration: int.parse(_durationController.text),
+        duration: _tripDurationDays,
+        startDate: _startDate,
+        endDate: _endDate,
         interests: _interestsController.text.trim(),
         budget: _buildBudgetLabel(),
         budgetAmount: _budgetAmountController.text.trim().isEmpty ? null : _budgetAmountController.text.trim(),
@@ -300,23 +375,7 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
               },
             ),
             const SizedBox(height: 16),
-            _buildInputField(
-              controller: _durationController,
-              label: 'How many days?',
-              hint: 'e.g., 7',
-              icon: Icons.calendar_today_rounded,
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter duration';
-                }
-                final days = int.tryParse(value);
-                if (days == null || days < 1 || days > 30) {
-                  return 'Enter a valid duration (1-30 days)';
-                }
-                return null;
-              },
-            ),
+            _buildDateRangePickerCard(theme, isDark),
             const SizedBox(height: 16),
             _buildInputField(
               controller: _interestsController,
@@ -353,6 +412,9 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
               ],
             ),
             const SizedBox(height: 32),
+
+            _buildTripLengthSummary(isDark, primaryColor),
+            const SizedBox(height: 16),
             
             // Generate Button or Loading State
             _isGenerating
@@ -487,6 +549,232 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
     );
   }
 
+  Widget _buildDateRangePickerCard(ThemeData theme, bool isDark) {
+    final primaryColor = theme.colorScheme.primary;
+    final startLabel = _startDate == null ? 'Select start date' : _formatDate(_startDate!);
+    final endLabel = _endDate == null ? 'Select end date' : _formatDate(_endDate!);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.06),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.16 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(Icons.date_range_rounded, color: primaryColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Trip dates',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      'Select your travel window and the planner will calculate the duration automatically.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: isDark ? Colors.white60 : theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDateActionButton(
+                  label: 'Start',
+                  value: startLabel,
+                  icon: Icons.flight_takeoff_rounded,
+                  onPressed: () => _selectDate(context, true),
+                  isDark: isDark,
+                  theme: theme,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDateActionButton(
+                  label: 'End',
+                  value: endLabel,
+                  icon: Icons.flight_land_rounded,
+                  onPressed: () => _selectDate(context, false),
+                  isDark: isDark,
+                  theme: theme,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _buildInfoPill(Icons.timelapse_rounded, '${_tripDurationDays == 0 ? '--' : _tripDurationDays} days', primaryColor, isDark),
+              _buildInfoPill(Icons.cloud_rounded, 'Weather-aware', const Color(0xFF3B82F6), isDark),
+              _buildInfoPill(Icons.event_rounded, 'Local calendar checks', const Color(0xFF8B5CF6), isDark),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateActionButton({
+    required String label,
+    required String value,
+    required IconData icon,
+    required VoidCallback onPressed,
+    required bool isDark,
+    required ThemeData theme,
+  }) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        backgroundColor: isDark ? const Color(0xFF0F172A).withOpacity(0.3) : const Color(0xFFF8FAFC),
+        side: BorderSide(color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.withOpacity(0.08)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: theme.colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white70 : theme.colorScheme.onSurface.withOpacity(0.75),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : theme.colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTripLengthSummary(bool isDark, Color primaryColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [primaryColor.withOpacity(0.14), primaryColor.withOpacity(0.06)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: primaryColor.withOpacity(0.12)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(Icons.auto_graph_rounded, color: primaryColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _tripDurationDays > 0 ? 'Trip duration: $_tripDurationDays days' : 'Trip duration will appear here',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _startDate != null && _endDate != null
+                      ? '${_formatDate(_startDate!)} • ${_formatDate(_endDate!)}'
+                      : 'Choose both dates to unlock weather and holiday insights.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: isDark ? Colors.white60 : Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoPill(IconData icon, String label, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(isDark ? 0.14 : 0.1),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(isDark ? 0.25 : 0.14)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCurrencyDropdown() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -581,7 +869,9 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
                 const SizedBox(height: 24),
                 TripPlanView(
                   destination: _destinationController.text.trim(),
-                  duration: int.tryParse(_durationController.text) ?? 0,
+                  duration: _tripDurationDays,
+                  startDate: _startDate,
+                  endDate: _endDate,
                   interests: _interestsController.text.trim(),
                   budget: _buildBudgetLabel(),
                   planText: _generatedPlan!,
@@ -631,8 +921,8 @@ class _AITripPlannerScreenState extends State<AITripPlannerScreen> {
                       : Text(
                           'Save Plan',
                           style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                 ),

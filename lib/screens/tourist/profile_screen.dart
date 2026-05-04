@@ -70,6 +70,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom + 80,
+        ),
         child: Column(
           children: [
             _buildHeader(),
@@ -84,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildInfoSection(),
                     const SizedBox(height: 16),
                     _buildActionButtons(),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),

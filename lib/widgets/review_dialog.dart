@@ -110,7 +110,7 @@ class _ReviewDialogState extends State<ReviewDialog> {
                 'rating': _rating,
                 'comment': _commentController.text.trim(),
                 'txHash': txHash,
-                'source': 'polygon',
+                'source': 'indexed',
                 'createdAt': bookingDoc?['reviewSubmittedAt'] ?? nowIso,
                 'updatedAt': nowIso,
               },

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import '../config/app_config.dart';
 
 class MistralService {
@@ -129,19 +130,49 @@ Format your response as follows:
     }
   }
 
-  /// Generate detailed trip plan using Mistral Small model
+  /// Generate detailed trip plan using Mistral Medium model
   Future<Map<String, dynamic>> generateTripPlan({
     required String destination,
     required int duration,
     required String interests,
     String? budget,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? weatherContext,
+    String? weatherByTripDay,
+    String? calendarContext,
+    String? coverageNote,
   }) async {
     try {
-      print('🗺️ Generating trip plan with Mistral Small...');
+      print('🗺️ Generating trip plan with Mistral Medium...');
       
       final budgetInfo = budget != null && budget.isNotEmpty
           ? '\n- Budget context: $budget'
           : '\n- Budget context: not specified';
+
+      final tripLength = startDate != null && endDate != null
+          ? endDate.difference(startDate).inDays + 1
+          : duration;
+
+      final dateRangeInfo = startDate != null && endDate != null
+          ? '\n- Trip dates: ${DateFormat('MMM d, yyyy').format(startDate)} to ${DateFormat('MMM d, yyyy').format(endDate)}'
+          : '\n- Trip dates: not specified';
+
+      final weatherInfo = weatherContext != null && weatherContext.trim().isNotEmpty
+          ? '\n- Weather context:\n${weatherContext.trim()}'
+          : '\n- Weather context: not available';
+
+        final weatherByTripDayInfo = weatherByTripDay != null && weatherByTripDay.trim().isNotEmpty
+          ? '\n- Weather by trip day:\n${weatherByTripDay.trim()}'
+          : '\n- Weather by trip day: not available';
+
+      final calendarInfo = calendarContext != null && calendarContext.trim().isNotEmpty
+          ? '\n- Special calendar days:\n${calendarContext.trim()}'
+          : '\n- Special calendar days: not available';
+
+      final coverageInfo = coverageNote != null && coverageNote.trim().isNotEmpty
+          ? '\n- Forecast coverage note: ${coverageNote.trim()}'
+          : '';
       
       final messages = [
         {
@@ -158,16 +189,18 @@ Formatting rules:
 7. Prefer vivid but practical language. Avoid filler and repetition.
 8. Include exact place names, estimated times, and realistic costs.
 9. Make the output visually clean so it reads well in a modern mobile UI.
-10. End with a practical budget summary and travel advice.
-11. Use clear place and dish names in each day so the app can attach matching images from the internet.'''
+10. Use the selected trip dates when building the itinerary and align weather advice to the correct days.
+11. If special calendar days or public holidays are provided, mention how they affect crowds, hours, pricing, or availability.
+12. End with a practical budget summary and travel advice.
+13. Use clear place and dish names in each day so the app can attach matching images from the internet.'''
         },
         {
           'role': 'user',
-          'content': '''Create a premium $duration-day trip plan for:
+          'content': '''Create a premium $tripLength-day trip plan for:
 
 📍 Destination: $destination
-⏱️ Duration: $duration days
-🎯 Interests: $interests$budgetInfo
+⏱️ Duration: $tripLength days
+🎯 Interests: $interests$budgetInfo$dateRangeInfo$weatherInfo$weatherByTripDayInfo$calendarInfo$coverageInfo
 
 Use this exact structure and keep it tight enough for a modern card UI:
 
@@ -175,13 +208,18 @@ Use this exact structure and keep it tight enough for a modern card UI:
 
 ## 📋 Quick Snapshot
 - Destination: $destination
-- Duration: $duration days
+- Duration: $tripLength days
+- Trip window: ${startDate != null && endDate != null ? '${DateFormat('MMM d, yyyy').format(startDate)} to ${DateFormat('MMM d, yyyy').format(endDate)}' : 'Flexible'}
 - Travel style: [match the user's interests]
 - Budget: [use the provided budget and currency if available, otherwise give a flexible estimate]
+- Weather guidance: [use the provided weather context to tailor each day]
+- Calendar guidance: [use the provided special-day context to note crowds, closures, or events]
 
 ## 📅 Day-by-Day Plan
 
 ### Day 1 - [Theme Name]
+Date: [Use the exact date from the trip window and day number]
+Weather: [Use the matching Weather by trip day line]
 **Morning**
 - 🏛️ **[Location Name]** - [brief description].
 - ☕ **[Cafe/Spot]** - [why it fits the day].

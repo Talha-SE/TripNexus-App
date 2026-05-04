@@ -8,7 +8,6 @@ import '../../models/saved_trip_plan_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/mongodb_service.dart';
 import '../../widgets/trip_plan_view.dart';
-import 'create_trip_screen.dart';
 import 'ai_trip_planner_screen.dart';
 
 // Helper function to extract hex string from ObjectId format
@@ -124,6 +123,8 @@ class _TripsListScreenState extends State<TripsListScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primaryColor = Color(AppConfig.primaryColor);
+    final isBottomTabView = widget.title == 'My Trips';
+    final fabBottomPadding = isBottomTabView ? 104.0 : 20.0;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
@@ -235,7 +236,7 @@ class _TripsListScreenState extends State<TripsListScreen> {
               ],
             ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 20),
+        padding: EdgeInsets.only(bottom: fabBottomPadding),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -250,22 +251,6 @@ class _TripsListScreenState extends State<TripsListScreen> {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const AITripPlannerScreen()),
-                  );
-                  if (result == true) {
-                    _loadAllData();
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildFabOption(
-                icon: Icons.add_rounded,
-                label: 'Manual Trip',
-                color: primaryColor,
-                onPressed: () async {
-                  setState(() => _isFabMenuOpen = false);
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CreateTripScreen()),
                   );
                   if (result == true) {
                     _loadAllData();
@@ -324,7 +309,7 @@ class _TripsListScreenState extends State<TripsListScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
-              'Start your journey by creating a manual trip or let our AI plan an adventure for you.',
+              'Start your journey by letting our AI planner craft your next adventure.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 15,

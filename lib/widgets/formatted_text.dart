@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class FormattedText extends StatelessWidget {
+class FormattedText extends StatefulWidget {
   final String text;
   final double fontSize;
   final Color textColor;
@@ -14,10 +16,48 @@ class FormattedText extends StatelessWidget {
   });
 
   @override
+  State<FormattedText> createState() => _FormattedTextState();
+}
+
+class _FormattedTextState extends State<FormattedText> {
+  final List<TapGestureRecognizer> _linkRecognizers = [];
+
+  @override
+  void dispose() {
+    for (final recognizer in _linkRecognizers) {
+      recognizer.dispose();
+    }
+    _linkRecognizers.clear();
+    super.dispose();
+  }
+
+  void _resetRecognizers() {
+    for (final recognizer in _linkRecognizers) {
+      recognizer.dispose();
+    }
+    _linkRecognizers.clear();
+  }
+
+  TapGestureRecognizer _createLinkRecognizer(String url) {
+    final recognizer = TapGestureRecognizer()
+      ..onTap = () async {
+        final uri = Uri.tryParse(url);
+        if (uri == null) return;
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      };
+    _linkRecognizers.add(recognizer);
+    return recognizer;
+  }
+
+  static final RegExp _urlPattern = RegExp(r'https?://[^\s]+');
+
+  @override
   Widget build(BuildContext context) {
+    _resetRecognizers();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: _parseText(text, context),
+      children: _parseText(widget.text, context),
     );
   }
 
@@ -80,8 +120,8 @@ class FormattedText extends StatelessWidget {
     // Remove any bold markers
     text = text.replaceAll('**', '');
     
-    double headingSize = fontSize + (4 - level) * 2;
-    if (headingSize < fontSize) headingSize = fontSize + 2;
+    double headingSize = widget.fontSize + (4 - level) * 2;
+    if (headingSize < widget.fontSize) headingSize = widget.fontSize + 2;
     
     return Padding(
       padding: EdgeInsets.only(top: level == 1 ? 16 : 12, bottom: 6),
@@ -90,7 +130,7 @@ class FormattedText extends StatelessWidget {
         style: GoogleFonts.poppins(
           fontSize: headingSize,
           fontWeight: level <= 2 ? FontWeight.bold : FontWeight.w600,
-          color: textColor,
+          color: widget.textColor,
         ),
       ),
     );
@@ -142,9 +182,9 @@ class FormattedText extends StatelessWidget {
       child: Text(
         cleaned,
         style: GoogleFonts.poppins(
-          fontSize: fontSize + 2,
+          fontSize: widget.fontSize + 2,
           fontWeight: FontWeight.bold,
-          color: textColor,
+          color: widget.textColor,
         ),
       ),
     );
@@ -154,13 +194,13 @@ class FormattedText extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: RichText(
-        text: _buildInlineFormattedSpan(line, textColor),
+        text: _buildInlineFormattedSpan(line, widget.textColor),
       ),
     );
   }
 
   TextSpan _buildInlineFormattedSpan(String text, Color baseColor) {
-    final spans = <TextSpan>[];
+    final spans = <InlineSpan>[];
     int currentIndex = 0;
 
     // Pattern to match both **bold** and *italic* (but not ** inside words)
@@ -194,38 +234,41 @@ class FormattedText extends StatelessWidget {
     for (final formatMatch in allMatches) {
       // Add normal text before this match
       if (formatMatch.start > currentIndex) {
-        spans.add(TextSpan(
-          text: text.substring(currentIndex, formatMatch.start),
-          style: GoogleFonts.poppins(
-            fontSize: fontSize,
+        _appendWithLinks(
+          spans,
+          text.substring(currentIndex, formatMatch.start),
+          GoogleFonts.poppins(
+            fontSize: widget.fontSize,
             color: baseColor,
           ),
-        ));
+        );
       }
 
       // Add formatted text
-      spans.add(TextSpan(
-        text: formatMatch.text,
-        style: GoogleFonts.poppins(
-          fontSize: fontSize,
+      _appendWithLinks(
+        spans,
+        formatMatch.text,
+        GoogleFonts.poppins(
+          fontSize: widget.fontSize,
           fontWeight: formatMatch.type == _FormatType.bold ? FontWeight.bold : FontWeight.normal,
           fontStyle: formatMatch.type == _FormatType.italic ? FontStyle.italic : FontStyle.normal,
           color: baseColor,
         ),
-      ));
+      );
 
       currentIndex = formatMatch.end;
     }
 
     // Add remaining text
     if (currentIndex < text.length) {
-      spans.add(TextSpan(
-        text: text.substring(currentIndex),
-        style: GoogleFonts.poppins(
-          fontSize: fontSize,
+      _appendWithLinks(
+        spans,
+        text.substring(currentIndex),
+        GoogleFonts.poppins(
+          fontSize: widget.fontSize,
           color: baseColor,
         ),
-      ));
+      );
     }
 
     return TextSpan(
@@ -233,12 +276,60 @@ class FormattedText extends StatelessWidget {
         TextSpan(
           text: text,
           style: GoogleFonts.poppins(
-            fontSize: fontSize,
+            fontSize: widget.fontSize,
             color: baseColor,
           ),
         ),
       ] : spans,
     );
+  }
+
+  void _appendWithLinks(List<InlineSpan> spans, String segment, TextStyle style) {
+    if (segment.isEmpty) return;
+
+    var currentIndex = 0;
+    for (final match in _urlPattern.allMatches(segment)) {
+      if (match.start > currentIndex) {
+        spans.add(TextSpan(
+          text: segment.substring(currentIndex, match.start),
+          style: style,
+        ));
+      }
+
+      var matchedUrl = match.group(0)!;
+      var trailing = '';
+      while (matchedUrl.isNotEmpty && RegExp(r'[),.;!?]$').hasMatch(matchedUrl)) {
+        trailing = matchedUrl.substring(matchedUrl.length - 1) + trailing;
+        matchedUrl = matchedUrl.substring(0, matchedUrl.length - 1);
+      }
+
+      if (matchedUrl.isNotEmpty) {
+        spans.add(
+          TextSpan(
+            text: matchedUrl,
+            style: style.copyWith(
+              color: Colors.blue.shade700,
+              decoration: TextDecoration.underline,
+              fontWeight: FontWeight.w600,
+            ),
+            recognizer: _createLinkRecognizer(matchedUrl),
+          ),
+        );
+      }
+
+      if (trailing.isNotEmpty) {
+        spans.add(TextSpan(text: trailing, style: style));
+      }
+
+      currentIndex = match.end;
+    }
+
+    if (currentIndex < segment.length) {
+      spans.add(TextSpan(
+        text: segment.substring(currentIndex),
+        style: style,
+      ));
+    }
   }
 
   Widget _buildBulletPoint(String line) {
@@ -257,14 +348,14 @@ class FormattedText extends StatelessWidget {
           Text(
             '• ',
             style: GoogleFonts.poppins(
-              fontSize: fontSize,
-              color: textColor,
+              fontSize: widget.fontSize,
+              color: widget.textColor,
               fontWeight: FontWeight.bold,
             ),
           ),
           Expanded(
             child: RichText(
-              text: _buildInlineFormattedSpan(cleaned, textColor),
+              text: _buildInlineFormattedSpan(cleaned, widget.textColor),
             ),
           ),
         ],

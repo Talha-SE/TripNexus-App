@@ -37,12 +37,12 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
     if (_weatherData == null || _weatherData!['daily'] == null) return null;
     
     final daily = _weatherData!['daily'];
-    final code = daily['weather_code'][index] as int;
-    final maxTemp = daily['temperature_2m_max'][index] as double;
-    final minTemp = daily['temperature_2m_min'][index] as double;
-    final wind = daily['wind_speed_10m_max'][index] as double;
-    final rainSum = daily['precipitation_sum'][index] as double;
-    final uvMax = daily['uv_index_max'][index] as double;
+    final code = (daily['weather_code'][index] as num).toInt();
+    final maxTemp = (daily['temperature_2m_max'][index] as num).toDouble();
+    final minTemp = (daily['temperature_2m_min'][index] as num).toDouble();
+    final wind = (daily['wind_speed_10m_max'][index] as num).toDouble();
+    final rainSum = (daily['precipitation_sum'][index] as num).toDouble();
+    final uvMax = (daily['uv_index_max'][index] as num).toDouble();
 
     // Priority 1: Dangerous Weather
     if (code >= 95) {
@@ -120,10 +120,10 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
     if (_weatherData == null || _weatherData!['hourly'] == null) return null;
     
     final hourly = _weatherData!['hourly'];
-    final code = hourly['weather_code'][index] as int;
-    final wind = hourly['wind_speed_10m'][index] as double;
-    final uv = hourly['uv_index'][index] as double;
-    final pop = hourly['precipitation_probability'][index] as int;
+    final code = (hourly['weather_code'][index] as num).toInt();
+    final wind = (hourly['wind_speed_10m'][index] as num).toDouble();
+    final uv = (hourly['uv_index'][index] as num).toDouble();
+    final pop = (hourly['precipitation_probability'][index] as num).toInt();
 
     if (code >= 95) return {'icon': Icons.bolt_rounded, 'color': Colors.purple.shade400};
     if (pop > 70 && code >= 51) return {'icon': Icons.umbrella_rounded, 'color': Colors.blue.shade400};
@@ -137,10 +137,10 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
     if (_weatherData == null || _weatherData!['current'] == null) return "Enjoy your travels!";
     
     final current = _weatherData!['current'];
-    final code = current['weather_code'] as int;
-    final temp = current['temperature_2m'] as double;
-    final wind = current['wind_speed_10m'] as double;
-    final rainProb = (_weatherData!['hourly']?['precipitation_probability']?[0] as int?) ?? 0;
+    final code = (current['weather_code'] as num).toInt();
+    final temp = (current['temperature_2m'] as num).toDouble();
+    final wind = (current['wind_speed_10m'] as num).toDouble();
+    final rainProb = (_weatherData!['hourly']?['precipitation_probability']?[0] as num?)?.toInt() ?? 0;
 
     if (code >= 95) return "Stay indoors! Unsafe for sightseeing right now.";
     if (code >= 71 && code <= 77) return "Snowy day! Perfect for cozy indoor visits.";
@@ -391,8 +391,8 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final weatherCode = _weatherData?['current']?['weather_code'] as int? ?? 0;
-    final isDay = (_weatherData?['current']?['is_day'] as int? ?? 1) == 1;
+    final weatherCode = (_weatherData?['current']?['weather_code'] as num?)?.toInt() ?? 0;
+    final isDay = ((_weatherData?['current']?['is_day'] as num?)?.toInt() ?? 1) == 1;
     final bgColors = _getBackgroundColors(weatherCode, isDay);
 
     return Scaffold(
@@ -543,25 +543,65 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 3,
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 800),
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: 0.8 + (value * 0.2),
+                  child: Opacity(
+                    opacity: value,
+                    child: child,
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                ),
+                child: const CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Analyzing atmospheric data...',
-              style: GoogleFonts.poppins(
-                color: Colors.white.withOpacity(0.8),
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-                letterSpacing: 0.5,
+            const SizedBox(height: 32),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 1200),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, (1 - value) * 20),
+                    child: child,
+                  ),
+                );
+              },
+              child: Column(
+                children: [
+                  Text(
+                    'Analyzing atmospheric data...',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Fetching weather insights for you',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white.withOpacity(0.6),
+                      fontWeight: FontWeight.w400,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -573,14 +613,7 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
       return _buildWeatherContent();
     }
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        children: [
-          _buildEmptyState(),
-        ],
-      ),
-    );
+    return _buildEmptyState();
   }
 
   Widget _buildSearchHistory() {
@@ -671,133 +704,170 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
   Widget _buildSearchHeader() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Column(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: isDark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.5),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
+          // Modern Search Bar with Glass Morphism
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark 
+                    ? Colors.white.withOpacity(0.08)
+                    : Colors.white.withOpacity(0.90),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: isDark 
+                      ? Colors.white.withOpacity(0.15)
+                      : Colors.grey.shade200,
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.18 : 0.06),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _searchCities,
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
-                fontWeight: FontWeight.w500,
-              ),
-              cursorColor: isDark ? Colors.white : Colors.blue,
-              decoration: InputDecoration(
-                hintText: 'Search city...',
-                hintStyle: GoogleFonts.poppins(
-                  color: isDark ? Colors.white38 : Colors.blueGrey.shade300,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                ),
-                prefixIcon: Icon(
-                  Icons.search_rounded,
-                  color: isDark ? Colors.white54 : const Color(0xFF64748B),
-                  size: 20,
-                ),
-                suffixIcon: _isSearching
-                    ? Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: isDark ? Colors.white70 : Colors.blue.shade600,
-                          ),
-                        ),
-                      )
-                    : (_searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(Icons.close_rounded,
-                                color: isDark ? Colors.white54 : const Color(0xFF64748B), size: 18),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() => _searchResults = []);
-                            },
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _searchCities,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  cursorColor: isDark ? Colors.white : const Color(0xFF0EA5E9),
+                  decoration: InputDecoration(
+                    hintText: 'Search for any city...',
+                    hintStyle: GoogleFonts.poppins(
+                      color: isDark ? Colors.white38 : Colors.grey.shade500,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(left: 16, right: 12),
+                      child: Icon(
+                        Icons.location_on_rounded,
+                        color: isDark ? Colors.white54 : const Color(0xFF0EA5E9),
+                        size: 22,
+                      ),
+                    ),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                    suffixIcon: _isSearching
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: isDark ? Colors.white70 : const Color(0xFF0EA5E9),
+                              ),
+                            ),
                           )
-                        : null),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        : (_searchController.text.isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: IconButton(
+                                  icon: Icon(Icons.close_rounded,
+                                      color: isDark ? Colors.white54 : Colors.grey.shade400,
+                                      size: 22),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _searchResults = []);
+                                    FocusScope.of(context).unfocus();
+                                  },
+                                ),
+                              )
+                            : null),
+                    suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  ),
+                ),
               ),
             ),
           ),
+          // Animated Search Results Dropdown
           if (_searchResults.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.35, // Dynamic height limit
-              ),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.8, end: 1.0),
+              duration: const Duration(milliseconds: 300),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, (1 - value) * 10),
+                    child: child,
                   ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  itemCount: _searchResults.length,
-                  separatorBuilder: (context, index) => Divider(
-                    height: 1,
-                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
-                  ),
-                  itemBuilder: (context, index) {
-                    final city = _searchResults[index];
-                    return Material(
-                      color: Colors.transparent,
-                      child: ListTile(
-                        onTap: () => _selectCity(city),
-                        dense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                        leading: Icon(
-                          Icons.location_on_rounded, 
-                          color: isDark ? Colors.white54 : Colors.blue.shade400, 
-                          size: 18
-                        ),
-                        title: Text(
-                          city.name,
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : const Color(0xFF1E293B),
-                            fontSize: 14,
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.only(top: 12),
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.4,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    itemCount: _searchResults.length,
+                    separatorBuilder: (context, index) => Divider(
+                      height: 1,
+                      indent: 56,
+                      endIndent: 16,
+                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+                    ),
+                    itemBuilder: (context, index) {
+                      final city = _searchResults[index];
+                      return Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          onTap: () => _selectCity(city),
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                          leading: Icon(
+                            Icons.location_on_rounded,
+                            color: isDark ? Colors.white54 : Colors.blue.shade400,
+                            size: 18,
+                          ),
+                          title: Text(
+                            city.name,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
+                              fontSize: 14,
+                            ),
+                          ),
+                          subtitle: Text(
+                            [city.admin1, city.country].where((e) => e != null).join(', '),
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: isDark ? Colors.white38 : Colors.grey.shade500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        subtitle: Text(
-                          [city.admin1, city.country].where((e) => e != null).join(', '),
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: isDark ? Colors.white38 : Colors.grey.shade500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -859,107 +929,153 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(seconds: 1),
-            builder: (context, value, child) {
-              return Transform.scale(
-                scale: value,
-                child: child,
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.all(30),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 30,
-                    spreadRadius: 5,
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 60),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 800),
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: 0.8 + (value * 0.2),
+                  child: Opacity(
+                    opacity: value,
+                    child: child,
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.cloud_outlined,
-                size: 70,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'Explore Global Weather',
-            style: GoogleFonts.poppins(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Search for any city to get precise real-time\nweather insights and smart travel advice.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.8),
-              height: 1.5,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          const SizedBox(height: 48),
-          if (_searchHistory.isNotEmpty) ...[
-            Text(
-              'RECENT SEARCHES',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: Colors.white.withOpacity(0.6),
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: _searchHistory.map((city) {
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => _selectFromHistory(city),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.15)),
+                );
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(40),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(36),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.25),
+                        width: 2,
                       ),
-                      child: Text(
-                        city,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 40,
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.cloud_outlined,
+                      size: 80,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+            Text(
+              'Explore Global Weather',
+              style: GoogleFonts.poppins(
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Search for any city to get real-time weather forecasts,\nsmart travel advice, and safety alerts',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.75),
+                height: 1.6,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 56),
+            if (_searchHistory.isNotEmpty) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.history_rounded,
+                        size: 16,
+                        color: Colors.white54,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Your Recent Searches',
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white.withOpacity(0.95),
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white54,
+                          letterSpacing: 0.8,
                         ),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove('weather_search_history');
+                      setState(() => _searchHistory = []);
+                    },
+                    child: Text(
+                      'Clear',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white38,
                       ),
                     ),
                   ),
-                );
-              }).toList(),
-            ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: _searchHistory.map((city) {
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _selectFromHistory(city),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withOpacity(0.15)),
+                        ),
+                        child: Text(
+                          city,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withOpacity(0.95),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -1100,8 +1216,8 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
     final hourly = _weatherData!['hourly'];
     final daily = _weatherData!['daily'];
 
-    final weatherCode = current['weather_code'] as int? ?? 0;
-    final isDay = (current['is_day'] as int? ?? 1) == 1;
+    final weatherCode = (current['weather_code'] as num?)?.toInt() ?? 0;
+    final isDay = ((current['is_day'] as num?)?.toInt() ?? 1) == 1;
 
     final todayAlert = _getDailyAlert(0);
     final isSevere = todayAlert != null && (todayAlert['type'] == 'storm' || todayAlert['type'] == 'heat' || todayAlert['type'] == 'wind');
@@ -1234,6 +1350,7 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
   }
 
   Widget _buildCurrentWeatherCard(Map<String, dynamic> current, int weatherCode, bool isDay) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final temp = current['temperature_2m'];
     final feelsLike = current['apparent_temperature'];
     final icon = _meteoService.getWeatherIcon(weatherCode, isDay);
@@ -1258,9 +1375,16 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.12),
+              color: isDark ? Colors.white.withOpacity(0.12) : Colors.white.withOpacity(0.06),
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+              border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.10 : 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -1474,13 +1598,13 @@ class _WeatherScreenState extends State<WeatherScreen> with TickerProviderStateM
         ),
         _buildDetailCard(
           'Precip',
-          '${current['precipitation']?.toStringAsFixed(1) ?? '0.0'} mm',
+          '${((current['precipitation'] as num?)?.toDouble())?.toStringAsFixed(1) ?? '0.0'} mm',
           Icons.opacity_rounded,
           Colors.indigo.shade300,
         ),
         _buildDetailCard(
           'UV Index',
-          '${current['uv_index']?.toStringAsFixed(1) ?? '--'}',
+          '${((current['uv_index'] as num?)?.toDouble())?.toStringAsFixed(1) ?? '--'}',
           Icons.wb_sunny_rounded,
           Colors.orange.shade300,
         ),

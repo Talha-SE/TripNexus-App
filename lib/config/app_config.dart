@@ -19,7 +19,7 @@ class AppConfig {
   static const String mistralLandmarkModel =
       'mistral-medium-latest'; // For image analysis (vision model)
   static const String mistralTripPlanModel =
-      'mistral-small-latest'; // Optimized for low latency and high throughput
+      'mistral-medium-latest'; // Higher quality planning output for card UI
 
   // Weather API Configuration
   static const String weatherApiKey = 'YOUR_WEATHER_API_KEY';

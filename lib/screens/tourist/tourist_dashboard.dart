@@ -20,6 +20,9 @@ import '../common/notification_panel_screen.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/in_app_notification.dart';
 import '../../models/notification_model.dart';
+import '../../services/mongodb_service.dart';
+import '../../models/saved_trip_plan_model.dart';
+import '../../widgets/trip_plan_view.dart';
 
 class TouristDashboard extends StatefulWidget {
   const TouristDashboard({Key? key}) : super(key: key);
@@ -33,12 +36,15 @@ class _TouristDashboardState extends State<TouristDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _notificationService = NotificationService.getInstance();
   int _unreadCount = 0;
+  List<SavedTripPlanModel> _savedPlans = [];
+  bool _isLoadingSavedPlans = false;
 
   @override
   void initState() {
     super.initState();
     _setupNotificationListener();
     _updateUnreadCount();
+    _loadSavedPlans();
 
     // Check for pending notification trigger
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -47,6 +53,42 @@ class _TouristDashboardState extends State<TouristDashboard> {
         _notificationService.clearPendingNotification();
       }
     });
+  }
+
+  Future<void> _loadSavedPlans() async {
+    if (!mounted) return;
+    setState(() => _isLoadingSavedPlans = true);
+
+    try {
+      final authService = await AuthService.getInstance();
+      final user = authService.currentUser;
+
+      if (user == null) {
+        setState(() => _isLoadingSavedPlans = false);
+        return;
+      }
+
+      final mongoService = await MongoDBService.getInstance();
+      await mongoService.ensureConnected();
+      final collection = mongoService.getSavedTripPlansCollection();
+
+      final plans = await collection.find({'userId': user.id}).toList();
+
+      if (mounted) {
+        setState(() {
+          _savedPlans = plans
+              .map((p) => SavedTripPlanModel.fromJson(p))
+              .toList()
+            ..sort((a, b) => b.savedAt.compareTo(a.savedAt));
+          _isLoadingSavedPlans = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading saved plans: $e');
+      if (mounted) {
+        setState(() => _isLoadingSavedPlans = false);
+      }
+    }
   }
 
   void _setupNotificationListener() {
@@ -191,10 +233,6 @@ class _TouristDashboardState extends State<TouristDashboard> {
                           _buildSectionHeader('Quick Actions', null),
                           const SizedBox(height: 16),
                           _buildQuickActions(),
-                          const SizedBox(height: 32),
-                          _buildSectionHeader('AI-Powered Features', null),
-                          const SizedBox(height: 16),
-                          _buildAIFeatures(),
                           const SizedBox(height: 32),
                           _buildRecentTrips(),
                           const SizedBox(
@@ -582,240 +620,211 @@ class _TouristDashboardState extends State<TouristDashboard> {
     Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
   }
 
-  Widget _buildAIFeatures() {
-    return SizedBox(
-      height: 180,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        clipBehavior: Clip.none,
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        children: [
-          _buildFeatureCard(
-            0,
-            Icons.smart_toy_rounded,
-            'AI Travel Assistant',
-            'Get personalized recommendations',
-            Color(AppConfig.primaryColor),
-            const Color(0xFFE3F2FD),
-            () => _navigateToScreen(const AITripPlannerScreen()),
-          ),
-          const SizedBox(width: 16),
-          _buildFeatureCard(
-            1,
-            Icons.eco_rounded,
-            'Eco-Friendly',
-            'Sustainable travel choices for you',
-            const Color(0xFF10B981),
-            const Color(0xFFECFDF5),
-            () {},
-          ),
-          const SizedBox(width: 16),
-          _buildFeatureCard(
-            2,
-            Icons.event_available_rounded,
-            'Local Events',
-            'Find exciting events nearby',
-            const Color(0xFFF59E0B),
-            const Color(0xFFFFFBEB),
-            () {},
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard(
-    int index,
-    IconData icon,
-    String title,
-    String subtitle,
-    Color color,
-    Color bgColor,
-    VoidCallback onTap,
-  ) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 280,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withOpacity(0.05)
-                : Colors.grey.withOpacity(0.05),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isDark
-                  ? Colors.black.withOpacity(0.2)
-                  : color.withOpacity(0.06),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? color.withOpacity(0.1)
-                        : color.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(icon, color: color, size: 24),
-                ),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 20,
-                  color: isDark ? Colors.white38 : color.withOpacity(0.3),
-                ),
-              ],
-            ),
-            const Spacer(),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                fontSize: 17,
-                color: isDark ? Colors.white : theme.colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: isDark
-                    ? Colors.white60
-                    : theme.colorScheme.onSurface.withOpacity(0.6),
-                height: 1.4,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildRecentTrips() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recent Trips',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : theme.colorScheme.onSurface,
+        _buildSectionHeader('Recent Trips', () => setState(() => _selectedIndex = 1)),
+        const SizedBox(height: 16),
+        if (_isLoadingSavedPlans)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.grey.shade100,
               ),
             ),
-            TextButton(
-              onPressed: () => setState(() => _selectedIndex = 1),
-              child: Text(
-                'View All',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(AppConfig.primaryColor),
-                ),
+            child: const Center(child: CircularProgressIndicator()),
+          )
+        else if (_savedPlans.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.grey.shade100,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Color(AppConfig.primaryColor).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.map_rounded,
+                    color: Color(AppConfig.primaryColor),
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'No trips yet',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Start planning your next adventure with our AI assistant!',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: isDark
+                        ? Colors.white38
+                        : theme.colorScheme.onSurface.withOpacity(0.4),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _navigateToScreen(const CreateTripScreen()),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(AppConfig.primaryColor),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text('Plan a Trip'),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _savedPlans.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final plan = _savedPlans[index];
+              return _buildRecentTripCard(plan);
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildRecentTripCard(SavedTripPlanModel plan) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () => _openSavedPlan(plan),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.grey.shade100,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.grey.shade100,
+        child: Row(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Color(AppConfig.primaryColor).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                Icons.location_on_rounded,
+                color: Color(AppConfig.primaryColor),
+                size: 28,
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Color(AppConfig.primaryColor).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.map_rounded,
-                  color: Color(AppConfig.primaryColor),
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'No trips yet',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : theme.colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Start planning your next adventure with our AI assistant!',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: isDark
-                      ? Colors.white38
-                      : theme.colorScheme.onSurface.withOpacity(0.4),
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _navigateToScreen(const CreateTripScreen()),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(AppConfig.primaryColor),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    plan.destination,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : theme.colorScheme.onSurface,
                     ),
-                    elevation: 0,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: const Text('Plan a Trip'),
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${plan.duration} days • ${plan.interests}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: isDark
+                          ? Colors.white60
+                          : theme.colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: isDark ? Colors.white38 : Colors.grey.shade400,
+            ),
+          ],
         ),
-      ],
+      ),
     );
+  }
+
+  void _openSavedPlan(SavedTripPlanModel plan) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _SavedPlanDetailScreen(plan: plan, onRefresh: _loadSavedPlans),
+      ),
+    ).then((_) => _loadSavedPlans());
+  }
+
+  Widget _buildAIFeatures() {
+    // Removed - AI-Powered Features section
+    return const SizedBox.shrink();
   }
 
   Widget _buildTripsTab() {
@@ -1055,6 +1064,80 @@ class _TouristDashboardState extends State<TouristDashboard> {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SavedPlanDetailScreen extends StatelessWidget {
+  final SavedTripPlanModel plan;
+  final VoidCallback onRefresh;
+
+  const _SavedPlanDetailScreen({
+    required this.plan,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = Color(AppConfig.primaryColor);
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: Text(
+          'Trip Details',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                  : [primaryColor, const Color(0xFF1565C0)],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Container(
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(0, 90, 0, 20),
+            child: TripPlanView(
+              destination: plan.destination,
+              duration: plan.duration,
+              startDate: plan.startDate,
+              endDate: plan.endDate,
+              interests: plan.interests,
+              budget: plan.budget,
+              planText: plan.plan,
+            ),
+          ),
         ),
       ),
     );

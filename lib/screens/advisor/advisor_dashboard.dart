@@ -9,7 +9,6 @@ import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/package_service.dart';
 import '../../services/mongodb_service.dart';
-import '../../services/blockchain_service.dart';
 import '../../widgets/custom_drawer.dart';
 import '../auth/welcome_screen.dart';
 import 'create_package_screen.dart';
@@ -87,6 +86,7 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
   List<_ReviewAnalytics> _reviewsAnalytics = [];
   bool _analyticsLoading = false;
   String? _analyticsError;
+  bool _analyticsInitialized = false;
 
   @override
   void initState() {
@@ -804,11 +804,16 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
         setState(() {
           _analyticsLoading = false;
           _reviewsAnalytics = [];
+          _analyticsInitialized = true;
         });
         return;
       }
 
       final mongoService = await MongoDBService.getInstance();
+      final connected = await mongoService.ensureConnected();
+      if (!connected) {
+        throw Exception('Unable to connect to MongoDB');
+      }
       final reviewsCollection = mongoService.getBlockchainReviewsCollection();
       final packageIds = packages
           .where((pkg) => pkg.id != null)
@@ -866,15 +871,7 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
         );
       }
 
-      // Get blockchain service
-      BlockchainService? blockchainService;
-      try {
-        blockchainService = await BlockchainService.getInstance();
-      } catch (e) {
-        print('⚠️ BlockchainService not available: $e');
-      }
-
-      // Build review analytics with indexed DB first and blockchain fallback.
+      // Build review analytics from MongoDB only.
       final List<_ReviewAnalytics> analytics = [];
 
       for (final package in packages) {
@@ -886,23 +883,6 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
         final enrichedReviews = List<Map<String, dynamic>>.from(
           reviewsByPackage[packageId] ?? const <Map<String, dynamic>>[],
         );
-
-        if (enrichedReviews.isEmpty && blockchainService != null) {
-          try {
-            final chainReviews = await blockchainService.getReviews(packageId);
-
-            for (final review in chainReviews) {
-              enrichedReviews.add({
-                ...review,
-                'travelerName': 'Traveler',
-                'txHash': null,
-                'source': 'blockchain',
-              });
-            }
-          } catch (e) {
-            print('Error fetching on-chain reviews for package $packageId: $e');
-          }
-        }
 
         if (enrichedReviews.isEmpty) {
           continue;
@@ -944,6 +924,7 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
         setState(() {
           _reviewsAnalytics = analytics;
           _analyticsLoading = false;
+          _analyticsInitialized = true;
         });
       }
     } catch (e) {
@@ -952,6 +933,7 @@ class _AdvisorDashboardState extends State<AdvisorDashboard> {
         setState(() {
           _analyticsError = 'Failed to load reviews';
           _analyticsLoading = false;
+          _analyticsInitialized = true;
         });
       }
     }
